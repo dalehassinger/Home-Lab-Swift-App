@@ -16,6 +16,10 @@ struct SettingsView: View {
     @State private var showingAddServer = false
     @State private var editingServer: VCenterServer?
     
+    // Button visibility settings
+    @AppStorage("showVirtualMachinesButton") private var showVirtualMachinesButton = true
+    @AppStorage("showHostsButton") private var showHostsButton = true
+    
     var body: some View {
         NavigationStack {
             Group {
@@ -50,7 +54,6 @@ struct SettingsView: View {
                             ForEach(servers) { server in
                                 HStack(spacing: 0) {
                                     Button {
-                                        print("🔘 Tapped server: \(server.name)")
                                         editingServer = server
                                     } label: {
                                         HStack {
@@ -118,6 +121,24 @@ struct SettingsView: View {
                                 .font(.caption2)
 #endif
                         }
+                        
+                        // Display Options Section
+                        Section {
+                            Toggle(isOn: $showVirtualMachinesButton) {
+                                Label("Virtual Machines", systemImage: "rectangle.stack.fill")
+                            }
+                            .tint(.teal)
+                            
+                            Toggle(isOn: $showHostsButton) {
+                                Label("Hosts", systemImage: "server.rack")
+                            }
+                            .tint(.orange)
+                        } header: {
+                            Text("Main Screen Buttons")
+                        } footer: {
+                            Text("Control which buttons appear on the main screen")
+                                .font(.caption2)
+                        }
                     }
                 }
             }
@@ -142,12 +163,6 @@ struct SettingsView: View {
             .sheet(item: $editingServer) { server in
                 EditServerView(server: server)
             }
-            .onAppear {
-                print("⚙️ SettingsView appeared - \(servers.count) servers found")
-                for server in servers {
-                    print("   📋 Server: \(server.name) - \(server.url)")
-                }
-            }
         }
 #if os(macOS)
         .frame(minWidth: 600, minHeight: 400)
@@ -157,16 +172,13 @@ struct SettingsView: View {
     private func deleteServers(offsets: IndexSet) {
         withAnimation {
             for index in offsets {
-                let server = servers[index]
-                print("🗑️ Deleting server: \(server.name)")
-                modelContext.delete(server)
+                modelContext.delete(servers[index])
             }
         }
     }
     
     private func deleteServer(_ server: VCenterServer) {
         withAnimation {
-            print("🗑️ Deleting server: \(server.name)")
             modelContext.delete(server)
         }
     }
@@ -286,12 +298,6 @@ struct EditServerView: View {
 #endif
                 } header: {
                     Text("Server Information")
-                } footer: {
-                    if hasLoaded {
-                        Text("Loaded: \(name.isEmpty ? "empty" : name)")
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-                    }
                 }
                 
                 Section {
@@ -308,16 +314,6 @@ struct EditServerView: View {
                     Toggle("Set as Default", isOn: $isDefault)
                 } footer: {
                     Text("The default server will be used when the app launches")
-                }
-                
-                // Debug section
-                Section {
-                    Text("Name: '\(name)'")
-                    Text("URL: '\(url)'")
-                    Text("Username: '\(username)'")
-                    Text("Has Password: \(password.isEmpty ? "No" : "Yes")")
-                } header: {
-                    Text("Debug Info (Remove later)")
                 }
             }
             .navigationTitle("Edit Server")
@@ -341,14 +337,9 @@ struct EditServerView: View {
                 }
             }
             .task {
-                // Try loading with task modifier
-                print("📝 EditServerView.task - Loading server data...")
-                print("   Server object ID: \(server.id)")
                 loadData()
             }
             .onAppear {
-                // Also try with onAppear
-                print("📝 EditServerView.onAppear - Loading server data...")
                 loadData()
             }
         }
@@ -361,18 +352,9 @@ struct EditServerView: View {
         password = server.password
         isDefault = server.isDefault
         hasLoaded = true
-        
-        print("   ✅ Data loaded:")
-        print("      Name: '\(name)'")
-        print("      URL: '\(url)'")
-        print("      Username: '\(username)'")
-        print("      Password length: \(password.count)")
-        print("      Default: \(isDefault)")
     }
     
     private func saveChanges() {
-        print("💾 Saving changes...")
-        
         // If this is set as default, unset all other defaults
         if isDefault && !server.isDefault {
             for otherServer in allServers where otherServer.id != server.id {
@@ -390,9 +372,8 @@ struct EditServerView: View {
         // Explicitly save the context
         do {
             try modelContext.save()
-            print("✅ Server updated successfully: \(server.name)")
         } catch {
-            print("❌ Error saving server: \(error)")
+            // Handle error silently or show alert in production
         }
         
         dismiss()

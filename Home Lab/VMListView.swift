@@ -3,24 +3,26 @@ import Observation
 
 struct VMListView: View {
     @Bindable var viewModel: VCenterViewModel
+    
+    /// Filters out vCLS (vSphere Cluster Services) VMs
+    private var filteredVMs: [VCenterVM] {
+        viewModel.vms.filter { !$0.name.hasPrefix("vCLS-") }
+    }
 
     var body: some View {
         List {
-            if viewModel.vms.isEmpty {
+            if filteredVMs.isEmpty {
                 Text("No VMs loaded yet.")
                     .foregroundStyle(.secondary)
             } else {
-                ForEach(viewModel.vms) { vm in
+                ForEach(filteredVMs) { vm in
                     NavigationLink {
                         VMDetailView(vm: vm, client: viewModel.client)
                     } label: {
                         HStack {
                             Image(systemName: (vm.power_state?.uppercased() == "POWERED_ON") ? "power.circle.fill" : "power.circle")
                                 .foregroundStyle((vm.power_state?.uppercased() == "POWERED_ON") ? .green : .secondary)
-                            VStack(alignment: .leading) {
-                                Text(vm.name).font(.headline)
-                                Text("ID: \(vm.id)").font(.caption).foregroundStyle(.secondary)
-                            }
+                            Text(vm.name).font(.headline)
                             Spacer()
                         }
                     }
@@ -28,8 +30,8 @@ struct VMListView: View {
             }
         }
         .onAppear {
-            print("🔵 VMListView appeared - showing \(viewModel.vms.count) VMs")
-            if let first = viewModel.vms.first {
+            print("🔵 VMListView appeared - showing \(filteredVMs.count) VMs (filtered from \(viewModel.vms.count) total)")
+            if let first = filteredVMs.first {
                 print("🔵 First VM in view: \(first.name) (vm=\(first.vm))")
             }
         }

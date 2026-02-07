@@ -18,6 +18,10 @@ struct ContentView: View {
     @State private var showingSettings = false
     @State private var selectedServer: VCenterServer?
     
+    // Button visibility settings
+    @AppStorage("showVirtualMachinesButton") private var showVirtualMachinesButton = true
+    @AppStorage("showHostsButton") private var showHostsButton = true
+    
     // Computed property to get default server
     private var defaultServer: VCenterServer? {
         let server = servers.first(where: { $0.isDefault }) ?? servers.first
@@ -74,27 +78,31 @@ struct ContentView: View {
                 
                 // iOS: Card-style tiles
                 if let vm = viewModel {
-                    NavigationLink {
-                        print("🔵🔵🔵 iOS VM NavigationLink activated")
-                        return VMListView(viewModel: vm)
-                    } label: {
-                        CardTile(title: "Virtual Machines", count: vm.vms.count, systemImage: "rectangle.stack.fill", colors: [Color.teal.opacity(0.9), Color.blue.opacity(0.8)])
-                            .padding(.vertical, 8)
+                    if showVirtualMachinesButton {
+                        NavigationLink {
+                            print("🔵🔵🔵 iOS VM NavigationLink activated")
+                            return VMListView(viewModel: vm)
+                        } label: {
+                            CardTile(title: "Virtual Machines", count: vm.vms.count, systemImage: "rectangle.stack.fill", colors: [Color.teal.opacity(0.9), Color.blue.opacity(0.8)])
+                                .padding(.vertical, 8)
+                        }
+                        .listRowInsets(EdgeInsets())
+                        .listRowBackground(Color.clear)
+                        .buttonStyle(PlainButtonStyle())
                     }
-                    .listRowInsets(EdgeInsets())
-                    .listRowBackground(Color.clear)
-                    .buttonStyle(PlainButtonStyle())
 
-                    NavigationLink {
-                        print("🟠🟠🟠 iOS Host NavigationLink activated")
-                        return HostListView(viewModel: vm)
-                    } label: {
-                        CardTile(title: "Hosts", count: vm.hosts.count, systemImage: "server.rack", colors: [Color.orange.opacity(0.9), Color.red.opacity(0.8)])
-                            .padding(.vertical, 8)
+                    if showHostsButton {
+                        NavigationLink {
+                            print("🟠🟠🟠 iOS Host NavigationLink activated")
+                            return HostListView(viewModel: vm)
+                        } label: {
+                            CardTile(title: "Hosts", count: vm.hosts.count, systemImage: "server.rack", colors: [Color.orange.opacity(0.9), Color.red.opacity(0.8)])
+                                .padding(.vertical, 8)
+                        }
+                        .listRowInsets(EdgeInsets())
+                        .listRowBackground(Color.clear)
+                        .buttonStyle(PlainButtonStyle())
                     }
-                    .listRowInsets(EdgeInsets())
-                    .listRowBackground(Color.clear)
-                    .buttonStyle(PlainButtonStyle())
                 } else {
                     VStack(spacing: 12) {
                         Image(systemName: "server.rack")
@@ -151,37 +159,41 @@ struct ContentView: View {
                 // macOS: Sidebar-style list items
                 if let vm = viewModel {
                     Section("vCenter Resources") {
-                        NavigationLink {
-                            print("🔵🔵🔵 macOS VM NavigationLink activated")
-                            return VMListView(viewModel: vm)
-                        } label: {
-                            Label {
-                                HStack {
-                                    Text("Virtual Machines")
-                                    Spacer()
-                                    Text("\(vm.vms.count)")
-                                        .foregroundStyle(.secondary)
+                        if showVirtualMachinesButton {
+                            NavigationLink {
+                                print("🔵🔵🔵 macOS VM NavigationLink activated")
+                                return VMListView(viewModel: vm)
+                            } label: {
+                                Label {
+                                    HStack {
+                                        Text("Virtual Machines")
+                                        Spacer()
+                                        Text("\(vm.vms.count)")
+                                            .foregroundStyle(.secondary)
+                                    }
+                                } icon: {
+                                    Image(systemName: "rectangle.stack.fill")
+                                        .foregroundStyle(.teal)
                                 }
-                            } icon: {
-                                Image(systemName: "rectangle.stack.fill")
-                                    .foregroundStyle(.teal)
                             }
                         }
                         
-                        NavigationLink {
-                            print("🟠🟠🟠 macOS Host NavigationLink activated")
-                            return HostListView(viewModel: vm)
-                        } label: {
-                            Label {
-                                HStack {
-                                    Text("Hosts")
-                                    Spacer()
-                                    Text("\(vm.hosts.count)")
-                                        .foregroundStyle(.secondary)
+                        if showHostsButton {
+                            NavigationLink {
+                                print("🟠🟠🟠 macOS Host NavigationLink activated")
+                                return HostListView(viewModel: vm)
+                            } label: {
+                                Label {
+                                    HStack {
+                                        Text("Hosts")
+                                        Spacer()
+                                        Text("\(vm.hosts.count)")
+                                            .foregroundStyle(.secondary)
+                                    }
+                                } icon: {
+                                    Image(systemName: "server.rack")
+                                        .foregroundStyle(.orange)
                                 }
-                            } icon: {
-                                Image(systemName: "server.rack")
-                                    .foregroundStyle(.orange)
                             }
                         }
                     }

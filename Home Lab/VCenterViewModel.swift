@@ -63,6 +63,9 @@ final class VCenterViewModel {
             }
             vmState = .loaded
             connectionState = .connected
+            
+            // Test metrics API (only once when first connected)
+            await testMetricsAPI()
         } catch {
             print("🔴 Error loading VMs: \(error)")
             vmState = .error(error.localizedDescription)
@@ -86,6 +89,35 @@ final class VCenterViewModel {
         } catch {
             print("🔴 Error loading Hosts: \(error)")
             hostState = .error(error.localizedDescription)
+        }
+    }
+    
+    @MainActor
+    func testMetricsAPI() async {
+        print("📊 Testing metrics API...")
+        do {
+            let metrics = try await client.fetchAvailableMetrics()
+            print("📊 ========== AVAILABLE METRICS ==========")
+            print("📊 Total metrics available: \(metrics.count)")
+            for metric in metrics.prefix(20) {
+                print("📊 - ID: \(metric.id)")
+                if let name = metric.name {
+                    print("📊   Name: \(name)")
+                }
+                if let description = metric.description {
+                    print("📊   Description: \(description)")
+                }
+                if let units = metric.units {
+                    print("📊   Units: \(units)")
+                }
+                print("📊")
+            }
+            if metrics.count > 20 {
+                print("📊 ... and \(metrics.count - 20) more metrics")
+            }
+            print("📊 ========================================")
+        } catch {
+            print("🔴 Error fetching metrics: \(error)")
         }
     }
 }
