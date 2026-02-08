@@ -12,6 +12,7 @@
 		EB5D12E32F3753BB00872FC9 /* OperationsServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB5D12E22F3753BB00872FC9 /* OperationsServer.swift */; };
 		EB5D12E52F3753CB00872FC9 /* OperationsHostsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB5D12E42F3753CB00872FC9 /* OperationsHostsView.swift */; };
 		EB5D12E92F37554B00872FC9 /* OperationsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB5D12E82F37554B00872FC9 /* OperationsViewModel.swift */; };
+		EB7BC0F92F380D0A00011E35 /* README 2.md in Resources */ = {isa = PBXBuildFile; fileRef = EB7BC0F82F380D0A00011E35 /* README 2.md */; };
 		EBD2E8472F36DA0B0089B87E /* VMSnapshotsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBD2E8462F36DA0B0089B87E /* VMSnapshotsView.swift */; };
 /* End PBXBuildFile section */
 
@@ -41,6 +42,7 @@
 		EB5D12E22F3753BB00872FC9 /* OperationsServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OperationsServer.swift; sourceTree = "<group>"; };
 		EB5D12E42F3753CB00872FC9 /* OperationsHostsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OperationsHostsView.swift; sourceTree = "<group>"; };
 		EB5D12E82F37554B00872FC9 /* OperationsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OperationsViewModel.swift; sourceTree = "<group>"; };
+		EB7BC0F82F380D0A00011E35 /* README 2.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "README 2.md"; sourceTree = "<group>"; };
 		EBD2E8462F36DA0B0089B87E /* VMSnapshotsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMSnapshotsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -100,6 +102,7 @@
 				EB5D12E42F3753CB00872FC9 /* OperationsHostsView.swift */,
 				EB5D12E82F37554B00872FC9 /* OperationsViewModel.swift */,
 				EB3D5B272F3761EF00481C92 /* OperationsHostDetailView.swift */,
+				EB7BC0F82F380D0A00011E35 /* README 2.md */,
 			);
 			sourceTree = "<group>";
 		};
@@ -233,6 +236,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EB7BC0F92F380D0A00011E35 /* README 2.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

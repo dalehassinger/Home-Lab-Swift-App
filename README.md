@@ -1,381 +1,205 @@
 # Home Lab
 
-A native iOS and macOS application for monitoring and managing VMware vCenter infrastructure, built with SwiftUI and SwiftData.
-
-![Swift](https://img.shields.io/badge/Swift-6.0+-orange.svg)
-![Platform](https://img.shields.io/badge/Platform-iOS%20%7C%20macOS-lightgrey.svg)
-![SwiftUI](https://img.shields.io/badge/SwiftUI-✓-blue.svg)
-
-## Overview
-
-Home Lab provides a clean, intuitive interface for monitoring your VMware vCenter environment. View real-time information about your ESXi hosts and virtual machines with a modern, card-based design optimized for iOS and macOS. Monitor resource usage with color-coded metrics and customize your interface to match your workflow.
+A SwiftUI-based management application for VMware vCenter and VMware Aria Operations, designed for home lab environments. Monitor and manage your virtual infrastructure from both iOS and macOS.
 
 ## Features
 
-### vCenter Server Management
-- 📡 Connect to multiple vCenter servers
-- 🔐 Secure credential storage with SwiftData
-- 🔄 Automatic session management with REST and SOAP APIs
-- ✅ Real-time connection state monitoring
-- ⚙️ Easy server editing and management
-- 🎯 Set default server for quick access
-
-### Virtual Machine Management
-- 💻 **VM Overview**
-  - Power state indicators with color-coded icons
-  - Quick VM identification
-  - Clean list view with vCLS system VM filtering
-  - Refreshable list with pull-to-refresh
-
-- 📊 **VM Details** (Scrollable)
-  - **VM Information Card**
-    - VM name with protected spacing
-    - Power state with visual indicators
+### vCenter Integration
+- **Virtual Machine Management**: View and monitor all VMs in your vCenter environment
+  - VM power state tracking
+  - CPU and memory allocation details
+  - Disk configuration and capacity information
+  - VM snapshot detection and management
   
-  - **Hardware Details Card**
-    - 🔵 **CPU**: Core count with usage percentage and progress bar
-    - 🟢 **Memory**: Capacity with usage percentage and progress bar
-    - 🟣 **Storage**: Used/Total capacity with usage percentage and progress bar
-    - Color-coded metrics (green → yellow → orange → red)
+- **ESXi Host Monitoring**: Track the health and status of your ESXi hosts
+  - Connection state and power state
+  - CPU core count and model information
+  - Memory capacity monitoring
+  - Storage capacity and usage tracking
+  - Host IP address and FQDN information
+
+- **Snapshot Management**: Dedicated view for VMs with snapshots
+  - Quick identification of VMs with active snapshots
+  - Snapshot details including creation time and state
+  - Helps maintain snapshot hygiene in your environment
+
+### VMware Aria Operations Integration
+- **Operations Host Monitoring**: View ESXi hosts through VMware Aria Operations
+  - Health score tracking (0-100 scale)
+  - Visual health indicators (Excellent, Good, Warning, Critical)
+  - Detailed host properties:
+    - ESXi version and build number
+    - CPU model and core count
+    - Memory capacity
+    - Management IP address
+    - Parent cluster and datacenter
+    - Connection and power states
+    - Hardware vendor and model information
+    - BIOS version
+    - Maintenance mode status
+    - HyperThreading status
+
+### Multi-Server Management
+- **vCenter Servers**: Support for multiple vCenter servers
+  - Add, edit, and delete server configurations
+  - Set a default server for automatic connection
+  - Secure credential storage
   
-  - **Storage Devices**
-    - Individual disk capacities
-    - Disk labels and identifiers
+- **Operations Servers**: Support for multiple VMware Aria Operations servers
+  - Independent management from vCenter servers
+  - Dedicated authentication per server
+  - Default server selection
+
+### User Interface
+- **Dual Platform Support**: Native SwiftUI UI for both iOS and macOS
+  - iOS: Card-based tile interface with gradient styling
+  - macOS: Traditional sidebar navigation with split view
   
-  - **Snapshots**
-    - Snapshot names and descriptions
-    - Creation timestamps
-    - Formatted date display
+- **Dark Mode Design**: Elegant dark theme with gradient backgrounds
+  - Custom color schemes for different resource types
+  - Visual health indicators with color coding
 
-### ESXi Host Monitoring
-- 🖥️ **Host Information**
-  - Connection and power state
-  - FQDN and IP address
-  - Real-time status indicators
+- **Connection Status Monitoring**: Real-time connection status indicators
+  - Visual status icons (connected, connecting, disconnected, failed)
+  - Color-coded status display (green, orange, gray, red)
+  - Manual reconnection capability
+  - Separate status tracking for vCenter and Operations connections
 
-- ⚙️ **Hardware Details**
-  - CPU core count
-  - Memory capacity (with thousands separator formatting)
-  - Total storage capacity
-  - Used storage metrics
-  - All storage values displayed in GB
+- **Customizable Interface**: Control which sections appear on the main screen
+  - Toggle visibility of Virtual Machines button
+  - Toggle visibility of Hosts button
+  - Toggle visibility of VMs with Snapshots button
+  - Toggle visibility of Operations Hosts button
 
-### Customization & Settings
-- 🎨 **Display Options**
-  - Toggle Virtual Machines button visibility
-  - Toggle Hosts button visibility
-  - Customize main screen layout
-  - Settings persist across app launches
+### Data Persistence
+- **SwiftData Integration**: Modern data persistence using SwiftData
+  - Server configurations stored locally
+  - Persistent settings across app launches
+  - Support for model versioning and migration
 
-- 🔧 **User Preferences**
-  - Set default vCenter server
-  - Manage multiple server connections
-  - Clean, production-ready settings interface
+## Technical Details
 
-## Design Philosophy
+### Architecture
+- **SwiftUI**: Modern declarative UI framework
+- **SwiftData**: Apple's data persistence framework for model management
+- **Swift Concurrency**: Async/await patterns for API calls
+- **REST API Integration**: Direct communication with vCenter and Operations APIs
+- **Multi-platform**: Shared codebase for iOS and macOS with platform-specific optimizations
 
-The app features a modern, professional UI with:
-- **Card-based layouts** using GroupBox for organized information
-- **Scrollable content** prevents text overlap on any screen size
-- **Icon-driven design** with color-coded sections:
-  - 🔵 Blue for CPU metrics
-  - 🟢 Green for memory information
-  - 🟣 Purple for storage
-  - 🟠 Orange for hosts
-  - 🔷 Teal for virtual machines
-- **Progress bars** with color-coded thresholds:
-  - CPU: Green (0-50%) → Yellow (50-75%) → Orange (75-90%) → Red (90%+)
-  - Memory: Green (0-60%) → Yellow (60-80%) → Orange (80-90%) → Red (90%+)
-  - Storage: Green (0-70%) → Yellow (70-85%) → Orange (85-95%) → Red (95%+)
-- **Divided sections** within cards for clear data separation
-- **Consistent labeling** with professional formatting
-- **Inline navigation** for compact, non-overlapping titles
-- **Smart filtering** automatically hides vCLS system VMs
-- **Cross-platform support** with iOS and macOS optimized layouts
+### API Support
+- **vCenter REST API**: Comprehensive integration with vCenter Server REST API
+  - VM management and monitoring
+  - Host information retrieval
+  - Snapshot enumeration
+  - Metrics and statistics collection
+  
+- **VMware Aria Operations REST API**: Integration with Operations Manager
+  - Resource discovery and monitoring
+  - Health score retrieval
+  - Property and metric collection
+  - Advanced filtering and querying
 
-## Technical Stack
-
-- **Language**: Swift 6.0+
-- **UI Framework**: SwiftUI with NavigationSplitView
-- **Data Persistence**: SwiftData
-- **Settings Storage**: AppStorage with UserDefaults
-- **Platforms**: iOS 17.0+ and macOS 14.0+
-- **API Integration**: 
-  - VMware vCenter REST API for VM and host data
-  - VMware vSphere SOAP API for performance metrics and hardware details
-- **Concurrency**: Swift Concurrency (async/await)
+### Security Considerations
+⚠️ **Important**: This is a development/home lab tool that accepts any TLS certificate. Do NOT use in production environments without implementing proper certificate validation.
 
 ## Requirements
 
-- iOS 17.0+ or macOS 14.0 (Sonoma) or later
-- Xcode 15.0+
-- VMware vCenter Server 7.0 or later
-- Network access to your vCenter server
+- **iOS**: iOS 17.0 or later
+- **macOS**: macOS 14.0 or later
+- **vCenter Server**: vCenter 7.0 or later (REST API enabled)
+- **VMware Aria Operations**: Operations 8.0 or later (REST API enabled)
 
-## Installation
+## Setup
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/yourusername/home-lab.git
-   ```
-
-2. Open the project in Xcode:
-   ```bash
-   cd home-lab
-   open Home\ Lab.xcodeproj
-   ```
-
-3. Build and run the application:
-   - iOS: Select an iOS device or simulator and press ⌘R
-   - macOS: Select "My Mac" and press ⌘R
+1. Launch the Home Lab app
+2. Tap the gear icon to access Settings
+3. Add your vCenter server:
+   - Enter server name (e.g., "Production vCenter")
+   - Enter server URL (e.g., "https://vcenter.example.com")
+   - Enter username and password
+   - Optionally set as default server
+4. Add your VMware Aria Operations server (optional):
+   - Enter server name
+   - Enter server URL (e.g., "https://192.168.6.199")
+   - Enter username and password
+   - Optionally set as default server
+5. Return to the main screen to view your infrastructure
 
 ## Usage
 
-### First Time Setup
+### Viewing Resources
+- Tap any tile/button on the main screen to view detailed information
+- Swipe to refresh data in list views
+- Use the reconnect button in the status section to manually refresh connections
 
-1. Launch the application
-2. Tap/click the settings gear icon ⚙️
-3. Tap/click "Add vCenter Server" (+)
-4. Enter your vCenter credentials:
-   - Server name (e.g., "Production vCenter")
-   - Server URL (e.g., `https://vcenter.example.com`)
-   - Username (e.g., `administrator@vsphere.local`)
-   - Password
-   - Optional: Set as default server
-5. Save the configuration
+### Managing Servers
+- Access Settings from the gear icon
+- Swipe left on servers (iOS) or click the trash icon (macOS) to delete
+- Long press (iOS) or right-click (macOS) for additional options
+- Edit server details by tapping the server entry
 
-### Customizing the Main Screen
+### Customizing the Interface
+- In Settings, use the "Main Screen Buttons" section to show/hide features
+- Changes take effect immediately on the main screen
+- Settings persist across app launches
 
-1. Open Settings
-2. Scroll to "Main Screen Buttons"
-3. Toggle buttons on/off:
-   - Virtual Machines
-   - Hosts
-4. Changes apply immediately
+## Project Structure
 
-### Managing Virtual Machines
+```
+Home Lab/
+├── Home_LabApp.swift          # App entry point with SwiftData configuration
+├── ContentView.swift           # Main view with navigation and tiles
+├── SettingsView.swift          # Server management and preferences
+├── VCenterClient.swift         # vCenter REST API client
+├── OperationsClient.swift      # Operations REST API client
+├── Models/                     # Data models
+│   ├── VCenterServer.swift
+│   ├── OperationsServer.swift
+│   └── Item.swift
+└── Views/                      # Feature-specific views
+    ├── VMListView.swift
+    ├── HostListView.swift
+    ├── VMSnapshotsView.swift
+    └── OperationsHostsView.swift
+```
 
-1. Tap/click the "Virtual Machines" card
-2. View all VMs with power state indicators
-3. Pull to refresh on iOS or click refresh on macOS
-4. Tap/click any VM to view:
-   - VM name and power state
-   - CPU usage percentage with progress bar
-   - Memory usage percentage with progress bar
-   - Storage usage percentage with progress bar
-   - Individual disk capacities
-   - Snapshots with timestamps
+## Recent Changes
 
-### Monitoring Hosts
+### February 2026
+- **Multi-server support**: Added ability to manage multiple vCenter and Operations servers
+- **Default server selection**: Set preferred servers for automatic connection
+- **VMware Aria Operations integration**: Full support for Operations Manager API
+- **Operations host monitoring**: View ESXi hosts with health scores and detailed properties
+- **Enhanced UI customization**: Toggle visibility of main screen buttons
+- **Improved connection status**: Real-time status monitoring with manual reconnection
+- **Platform-specific UI**: Optimized interfaces for both iOS and macOS
+- **SwiftData migration**: Modern data persistence with SwiftData framework
+- **Dark mode refinement**: Enhanced gradient backgrounds and color schemes
+- **Snapshot view**: Dedicated section for VMs with snapshots
+- **Health indicators**: Visual health status with color-coded badges
+- **Extended host details**: CPU, memory, storage, and hardware information
 
-1. Tap/click the "Hosts" card
-2. View all ESXi hosts
-3. Tap/click on any host to view detailed information:
-   - Network configuration (IP, FQDN)
-   - Hardware specifications (CPU, Memory, Storage)
-   - Storage capacity and usage
+## Known Limitations
 
-## API Integration
-
-### REST API
-Used for:
-- Listing virtual machines
-- Retrieving VM hardware configuration
-- Fetching VM disk information
-- Host enumeration
-
-### SOAP API
-Used for:
-- **VM Performance Metrics**:
-  - CPU usage percentage (from quickStats)
-  - Memory usage percentage
-  - Storage committed, uncommitted, and total
-- **ESXi Host Details**:
-  - CPU core count
-  - Memory capacity
-  - Storage capacity and usage via datastore queries
-  - Network configuration (IP, FQDN)
-- **Snapshot Information**:
-  - Snapshot names and IDs
-  - Creation timestamps
-  - Snapshot descriptions
-
-## Key Features Explained
-
-### Smart VM Filtering
-The app automatically filters out vSphere Cluster Services (vCLS) VMs:
-- vCLS VMs are system VMs created by vSphere to maintain cluster services
-- They start with the prefix "vCLS-"
-- Automatically hidden from the VM list for a cleaner interface
-- Matches VMware's vSphere Client behavior
-
-### Real-Time Performance Monitoring
-Resource usage is displayed with intelligent color coding:
-- **CPU Usage**:
-  - Green: 0-50% (optimal)
-  - Yellow: 50-75% (moderate)
-  - Orange: 75-90% (high)
-  - Red: 90%+ (critical)
-- **Memory Usage**:
-  - Green: 0-60% (optimal)
-  - Yellow: 60-80% (moderate)
-  - Orange: 80-90% (high)
-  - Red: 90%+ (critical)
-- **Storage Usage**:
-  - Green: 0-70% (optimal)
-  - Yellow: 70-85% (moderate)
-  - Orange: 85-95% (high)
-  - Red: 95%+ (critical)
-
-### Responsive Design
-- **iOS**: Card-based tiles with gradient backgrounds
-- **macOS**: Sidebar navigation with detailed views
-- **Scrollable content**: Prevents text overlap on all screen sizes
-- **Inline navigation titles**: Compact headers that don't interfere with content
+- TLS certificate validation is disabled (suitable for home lab only)
+- Read-only operations (no VM power management or configuration changes)
+- Credentials stored locally (use strong device security)
+- Requires network access to vCenter and Operations servers
 
 ## Future Enhancements
 
-Potential features for future releases:
-- [ ] VM power operations (start, stop, restart)
-- [ ] Historical performance charts
-- [ ] Advanced snapshot management (create, delete, revert)
-- [ ] Resource pool monitoring
-- [ ] Cluster overview and statistics
-- [ ] Real-time event monitoring
-- [ ] Export reports to PDF/CSV
-- [ ] Custom alert thresholds
-- [ ] iPad-optimized layout
-- [ ] Widget support for quick stats
-- [ ] Network usage metrics
-- [ ] Datastore browser
-
-## Screenshots
-
-### iOS
-- Card-based home screen with gradient tiles
-- Scrollable VM details with performance metrics
-- Clean list views with power state indicators
-
-### macOS
-- Sidebar navigation with resource counts
-- Detailed view panels
-- Native macOS toolbar integration
-
-## Data Privacy & Security
-
-### Local Storage
-All data is stored locally on your device:
-- vCenter server configurations
-- Connection credentials (encrypted by SwiftData)
-- User preferences and settings
-- No data is transmitted to third parties
-- No analytics or tracking
-
-### Network Security
-⚠️ **Development Notice**: The current implementation accepts self-signed TLS certificates for development purposes. This is **not recommended for production use**. 
-
-For production deployment:
-- Implement proper certificate validation
-- Use certificate pinning
-- Enable additional security measures
-- Consider VPN connectivity for remote access
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-### Development Guidelines
-- Follow Swift naming conventions
-- Use SwiftUI best practices
-- Maintain async/await patterns for API calls
-- Add comments for complex logic
-- Test on both iOS and macOS when applicable
-- Update README for new features
-
-## Frequently Asked Questions
-
-### Q: Why are some VMs not showing up?
-A: The app automatically filters out vCLS (vSphere Cluster Services) VMs, which are system VMs that start with "vCLS-". This matches VMware's vSphere Client behavior.
-
-### Q: Can I hide buttons I don't use?
-A: Yes! Go to Settings → Main Screen Buttons and toggle any buttons on or off. Changes apply immediately.
-
-### Q: Why do I see "—" instead of metrics?
-A: This can happen if:
-- The VM is powered off
-- Performance data is not available yet
-- The vCenter connection was interrupted
-Try refreshing the data or checking the VM's power state.
-
-### Q: Does this work with vSphere 8.0?
-A: Yes! The app works with vCenter Server 7.0 and later, including vSphere 8.0.
-
-### Q: Is my vCenter password stored securely?
-A: Yes, credentials are stored using SwiftData with encryption. However, for maximum security, consider using a read-only vCenter account.
-
-## Troubleshooting
-
-### Connection Issues
-- Verify the vCenter URL is correct (include `https://`)
-- Check network connectivity to vCenter
-- Ensure credentials are valid
-- Check firewall settings allow connections
-
-### Performance Data Not Showing
-- Ensure VM is powered on
-- Wait a few moments for vCenter to collect stats
-- Try refreshing the view
-- Check vCenter performance statistics settings
-
-### App Crashes or Errors
-- Check Xcode console for error messages
-- Verify vCenter API compatibility
-- Try reconnecting to vCenter
-- Clear app data and reconfigure if needed
-
-## Version History
-
-### Current Version
-- ✅ Multi-platform support (iOS & macOS)
-- ✅ Real-time performance monitoring
-- ✅ Storage usage metrics
-- ✅ Customizable interface
-- ✅ vCLS VM filtering
-- ✅ Snapshot viewing
-- ✅ Scrollable layouts
+- VM power operations (start, stop, restart)
+- Advanced filtering and search capabilities
+- Historical metrics and charts
+- Push notifications for critical alerts
+- Widget support for quick status views
+- Apple Watch companion app
+- Export capabilities for reports
 
 ## License
 
-This project is available for personal and educational use.
-
-## Acknowledgments
-
-- Built with SwiftUI and SwiftData
-- Integrates with VMware vCenter Server REST and SOAP APIs
-- Icons from SF Symbols
-- Gradient designs inspired by modern iOS applications
-- Community feedback and testing
-
-## Author
-
-Created for home lab and development environment management.
-
-## Support
-
-For issues, questions, or suggestions:
-- Open an issue on GitHub
-- Check the FAQ section above
-- Review the troubleshooting guide
+Created by Dale Hassinger, 2026
 
 ---
 
-**Note**: This application is designed for home lab and development environments. Always ensure proper security measures when connecting to production vCenter servers. Consider using read-only accounts and VPN connectivity for enhanced security.
-
-**Made with ❤️ for the home lab community**
-
+**For Home Lab Use Only** - Not intended for production environments
