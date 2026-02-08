@@ -12,15 +12,19 @@ import Observation
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var servers: [VCenterServer]
+    @Query private var operationsServers: [OperationsServer]
     private let darkBackground = LinearGradient(gradient: Gradient(colors: [Color.black, Color(hue: 0.6, saturation: 0.2, brightness: 0.15)]), startPoint: .topLeading, endPoint: .bottomTrailing)
 
     @State private var viewModel: VCenterViewModel?
+    @State private var operationsViewModel: OperationsViewModel?
     @State private var showingSettings = false
     @State private var selectedServer: VCenterServer?
     
     // Button visibility settings
     @AppStorage("showVirtualMachinesButton") private var showVirtualMachinesButton = true
     @AppStorage("showHostsButton") private var showHostsButton = true
+    @AppStorage("showVMSnapshotsButton") private var showVMSnapshotsButton = true
+    @AppStorage("showOperationsHostsButton") private var showOperationsHostsButton = true
     
     // Computed property to get default server
     private var defaultServer: VCenterServer? {
@@ -29,6 +33,17 @@ struct ContentView: View {
             print("🔍 Default server: \(server.name) - isDefault: \(server.isDefault)")
         } else {
             print("🔍 No default server found - servers count: \(servers.count)")
+        }
+        return server
+    }
+    
+    // Computed property to get default Operations server
+    private var defaultOperationsServer: OperationsServer? {
+        let server = operationsServers.first(where: { $0.isDefault }) ?? operationsServers.first
+        if let server = server {
+            print("🔍 Default Operations server: \(server.name) - isDefault: \(server.isDefault)")
+        } else {
+            print("🔍 No default Operations server found - servers count: \(operationsServers.count)")
         }
         return server
     }
@@ -46,7 +61,7 @@ struct ContentView: View {
                                     .font(.largeTitle)
                                     .fontWeight(.bold)
                                     .foregroundStyle(.white)
-                                Text("vCenter Management")
+                                Text("Management Servers Defined:")
                                     .font(.subheadline)
                                     .foregroundStyle(.white.opacity(0.8))
                             }
@@ -60,14 +75,30 @@ struct ContentView: View {
                             }
                         }
                         
-                        if let server = selectedServer ?? defaultServer {
-                            HStack {
-                                Image(systemName: "server.rack")
-                                    .foregroundStyle(.white.opacity(0.7))
-                                Text(server.name)
-                                    .font(.caption)
-                                    .foregroundStyle(.white.opacity(0.7))
-                                Spacer()
+                        // Server info
+                        VStack(spacing: 4) {
+                            if let server = selectedServer ?? defaultServer {
+                                HStack {
+                                    Image(systemName: "server.rack")
+                                        .foregroundStyle(.white.opacity(0.7))
+                                        .font(.caption2)
+                                    Text("vCenter: \(server.name)")
+                                        .font(.caption)
+                                        .foregroundStyle(.white.opacity(0.7))
+                                    Spacer()
+                                }
+                            }
+                            
+                            if let opsServer = defaultOperationsServer {
+                                HStack {
+                                    Image(systemName: "chart.bar.fill")
+                                        .foregroundStyle(.white.opacity(0.7))
+                                        .font(.caption2)
+                                    Text("Operations: \(opsServer.name)")
+                                        .font(.caption)
+                                        .foregroundStyle(.white.opacity(0.7))
+                                    Spacer()
+                                }
                             }
                         }
                     }
@@ -83,7 +114,7 @@ struct ContentView: View {
                             print("🔵🔵🔵 iOS VM NavigationLink activated")
                             return VMListView(viewModel: vm)
                         } label: {
-                            CardTile(title: "Virtual Machines", count: vm.vms.count, systemImage: "rectangle.stack.fill", colors: [Color.teal.opacity(0.9), Color.blue.opacity(0.8)])
+                            CardTile(title: "vCenter VMs", count: vm.vms.count, systemImage: "rectangle.stack.fill", colors: [Color.teal.opacity(0.9), Color.blue.opacity(0.8)])
                                 .padding(.vertical, 8)
                         }
                         .listRowInsets(EdgeInsets())
@@ -96,14 +127,56 @@ struct ContentView: View {
                             print("🟠🟠🟠 iOS Host NavigationLink activated")
                             return HostListView(viewModel: vm)
                         } label: {
-                            CardTile(title: "Hosts", count: vm.hosts.count, systemImage: "server.rack", colors: [Color.orange.opacity(0.9), Color.red.opacity(0.8)])
+                            CardTile(title: "vCenter Hosts", count: vm.hosts.count, systemImage: "server.rack", colors: [Color.orange.opacity(0.9), Color.red.opacity(0.8)])
                                 .padding(.vertical, 8)
                         }
                         .listRowInsets(EdgeInsets())
                         .listRowBackground(Color.clear)
                         .buttonStyle(PlainButtonStyle())
                     }
-                } else {
+                    
+                    if showVMSnapshotsButton {
+                        NavigationLink {
+                            print("📸📸📸 iOS VM Snapshots NavigationLink activated")
+                            return VMSnapshotsView(viewModel: vm)
+                        } label: {
+                            CardTile(title: "VMs with Snapshots", count: vm.vmsWithSnapshotsCount, systemImage: "camera.on.rectangle.fill", colors: [Color.red.opacity(0.9), Color.pink.opacity(0.8)])
+                                .padding(.vertical, 8)
+                        }
+                        .listRowInsets(EdgeInsets())
+                        .listRowBackground(Color.clear)
+                        .buttonStyle(PlainButtonStyle())
+                    }
+                }
+                
+                // Operations section - independent of vCenter
+                if showOperationsHostsButton, let opsServer = defaultOperationsServer {
+                    if let opsVM = operationsViewModel {
+                        NavigationLink {
+                            print("🟢🟢🟢 iOS Operations Hosts NavigationLink activated")
+                            return OperationsHostsView(operationsServer: opsServer)
+                        } label: {
+                            CardTile(title: "Operations Hosts", count: opsVM.hosts.count, systemImage: "chart.bar.fill", colors: [Color.green.opacity(0.9), Color.mint.opacity(0.8)])
+                                .padding(.vertical, 8)
+                        }
+                        .listRowInsets(EdgeInsets())
+                        .listRowBackground(Color.clear)
+                        .buttonStyle(PlainButtonStyle())
+                    } else {
+                        NavigationLink {
+                            print("🟢🟢🟢 iOS Operations Hosts NavigationLink activated")
+                            return OperationsHostsView(operationsServer: opsServer)
+                        } label: {
+                            CardTile(title: "Operations Hosts", count: 0, systemImage: "chart.bar.fill", colors: [Color.green.opacity(0.9), Color.mint.opacity(0.8)])
+                                .padding(.vertical, 8)
+                        }
+                        .listRowInsets(EdgeInsets())
+                        .listRowBackground(Color.clear)
+                        .buttonStyle(PlainButtonStyle())
+                    }
+                }
+                
+                if viewModel == nil {
                     VStack(spacing: 12) {
                         Image(systemName: "server.rack")
                             .font(.system(size: 48))
@@ -131,7 +204,7 @@ struct ContentView: View {
                             Text("Home Lab")
                                 .font(.title)
                                 .fontWeight(.bold)
-                            Text("vCenter Management")
+                            Text("Management Servers Defined:")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                             if let server = selectedServer ?? defaultServer {
@@ -166,7 +239,7 @@ struct ContentView: View {
                             } label: {
                                 Label {
                                     HStack {
-                                        Text("Virtual Machines")
+                                        Text("vCenter VMs")
                                         Spacer()
                                         Text("\(vm.vms.count)")
                                             .foregroundStyle(.secondary)
@@ -196,8 +269,53 @@ struct ContentView: View {
                                 }
                             }
                         }
+                        
+                        if showVMSnapshotsButton {
+                            NavigationLink {
+                                print("📸📸📸 macOS VM Snapshots NavigationLink activated")
+                                return VMSnapshotsView(viewModel: vm)
+                            } label: {
+                                Label {
+                                    HStack {
+                                        Text("VMs with Snapshots")
+                                        Spacer()
+                                        Text("\(vm.vmsWithSnapshotsCount)")
+                                            .foregroundStyle(.secondary)
+                                    }
+                                } icon: {
+                                    Image(systemName: "camera.on.rectangle.fill")
+                                        .foregroundStyle(.red)
+                                }
+                            }
+                        }
                     }
-                } else {
+                }
+                
+                // Operations section - independent of vCenter
+                if showOperationsHostsButton, let opsServer = defaultOperationsServer {
+                    Section("VMware Aria Operations") {
+                        NavigationLink {
+                            print("🟢🟢🟢 macOS Operations Hosts NavigationLink activated")
+                            return OperationsHostsView(operationsServer: opsServer)
+                        } label: {
+                            Label {
+                                HStack {
+                                    Text("Operations Hosts")
+                                    Spacer()
+                                    if let opsVM = operationsViewModel {
+                                        Text("\(opsVM.hosts.count)")
+                                            .foregroundStyle(.secondary)
+                                    }
+                                }
+                            } icon: {
+                                Image(systemName: "chart.bar.fill")
+                                    .foregroundStyle(.green)
+                            }
+                        }
+                    }
+                }
+                
+                if viewModel == nil {
                     Section {
                         VStack(spacing: 12) {
                             Image(systemName: "server.rack")
@@ -226,6 +344,12 @@ struct ContentView: View {
                             Text("vCenter Connection")
                                 .font(.subheadline)
                                 .foregroundStyle(.secondary)
+                            if let server = selectedServer ?? defaultServer {
+                                Text(server.name)
+                                    .font(.caption)
+                                    .foregroundStyle(.primary)
+                                    .fontWeight(.medium)
+                            }
                             Text(connectionStatusText)
                                 .font(.caption)
                                 .foregroundStyle(connectionStatusColor)
@@ -243,6 +367,38 @@ struct ContentView: View {
                         .help("Reconnect to vCenter")
                     }
                     .padding(.vertical, 4)
+                    
+                    // Operations connection status
+                    if let opsServer = defaultOperationsServer {
+                        HStack {
+                            Image(systemName: operationsConnectionStatusIcon)
+                                .foregroundStyle(operationsConnectionStatusColor)
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Operations Connection")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                                Text(opsServer.name)
+                                    .font(.caption)
+                                    .foregroundStyle(.primary)
+                                    .fontWeight(.medium)
+                                Text(operationsConnectionStatusText)
+                                    .font(.caption)
+                                    .foregroundStyle(operationsConnectionStatusColor)
+                            }
+                            Spacer()
+                            Button {
+                                Task {
+                                    await initializeOperationsViewModel()
+                                }
+                            } label: {
+                                Image(systemName: "arrow.clockwise")
+                                    .font(.caption)
+                            }
+                            .buttonStyle(.borderless)
+                            .help("Reconnect to Operations")
+                        }
+                        .padding(.vertical, 4)
+                    }
                 } header: {
                     Text("Status")
                 }
@@ -283,6 +439,9 @@ struct ContentView: View {
         .task(id: selectedServer?.id ?? defaultServer?.id) {
             await initializeViewModel()
         }
+        .task(id: defaultOperationsServer?.id) {
+            await initializeOperationsViewModel()
+        }
     }
     
     @MainActor
@@ -320,7 +479,44 @@ struct ContentView: View {
         await vm.loadVMs()
         print("🟠 Loading Hosts...")
         await vm.loadHosts()
+        print("📸 Loading VM Snapshots count...")
+        await vm.loadVMsWithSnapshotsCount()
         print("✅ Connection attempt complete")
+    }
+    
+    @MainActor
+    private func initializeOperationsViewModel() async {
+        print("🔄 initializeOperationsViewModel called")
+        print("   Default Operations server: \(defaultOperationsServer?.name ?? "none")")
+        print("   Operations servers count: \(operationsServers.count)")
+        
+        guard let server = defaultOperationsServer else {
+            print("❌ No Operations server available")
+            operationsViewModel = nil
+            return
+        }
+        
+        guard let url = URL(string: server.url) else {
+            print("❌ Invalid Operations URL: \(server.url)")
+            operationsViewModel = nil
+            return
+        }
+        
+        print("✅ Creating Operations ViewModel for: \(server.name)")
+        print("   URL: \(url)")
+        print("   Username: \(server.username)")
+        
+        let opsVM = OperationsViewModel(
+            serverURL: url,
+            username: server.username,
+            password: server.password
+        )
+        
+        operationsViewModel = opsVM
+        
+        print("🟢 Loading Operations Hosts...")
+        await opsVM.loadHosts()
+        print("✅ Operations connection attempt complete")
     }
     
     // Connection status computed properties
@@ -355,6 +551,49 @@ struct ContentView: View {
     private var connectionStatusText: String {
         guard let viewModel else { return "No Server" }
         switch viewModel.connectionState {
+        case .disconnected:
+            return "Disconnected"
+        case .connecting:
+            return "Connecting..."
+        case .connected:
+            return "Connected"
+        case .failed(let error):
+            return "Failed: \(error)"
+        }
+    }
+    
+    // Operations connection status computed properties
+    private var operationsConnectionStatusIcon: String {
+        guard let operationsViewModel else { return "circle.fill" }
+        switch operationsViewModel.connectionState {
+        case .disconnected:
+            return "circle.fill"
+        case .connecting:
+            return "circle.dotted"
+        case .connected:
+            return "checkmark.circle.fill"
+        case .failed:
+            return "xmark.circle.fill"
+        }
+    }
+    
+    private var operationsConnectionStatusColor: Color {
+        guard let operationsViewModel else { return .gray }
+        switch operationsViewModel.connectionState {
+        case .disconnected:
+            return .gray
+        case .connecting:
+            return .orange
+        case .connected:
+            return .green
+        case .failed:
+            return .red
+        }
+    }
+    
+    private var operationsConnectionStatusText: String {
+        guard let operationsViewModel else { return "No Server" }
+        switch operationsViewModel.connectionState {
         case .disconnected:
             return "Disconnected"
         case .connecting:

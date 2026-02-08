@@ -6,6 +6,15 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		EB3D5B282F3761EF00481C92 /* OperationsHostDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB3D5B272F3761EF00481C92 /* OperationsHostDetailView.swift */; };
+		EB5D12E12F3753B600872FC9 /* OperationsClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB5D12E02F3753B600872FC9 /* OperationsClient.swift */; };
+		EB5D12E32F3753BB00872FC9 /* OperationsServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB5D12E22F3753BB00872FC9 /* OperationsServer.swift */; };
+		EB5D12E52F3753CB00872FC9 /* OperationsHostsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB5D12E42F3753CB00872FC9 /* OperationsHostsView.swift */; };
+		EB5D12E92F37554B00872FC9 /* OperationsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB5D12E82F37554B00872FC9 /* OperationsViewModel.swift */; };
+		EBD2E8472F36DA0B0089B87E /* VMSnapshotsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBD2E8462F36DA0B0089B87E /* VMSnapshotsView.swift */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		EB4F682F2F36406D004B5D83 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -24,9 +33,15 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		EB3D5B272F3761EF00481C92 /* OperationsHostDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OperationsHostDetailView.swift; sourceTree = "<group>"; };
 		EB4F681F2F36406C004B5D83 /* Home Lab.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Home Lab.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		EB4F682E2F36406D004B5D83 /* Home LabTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Home LabTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		EB4F68382F36406D004B5D83 /* Home LabUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Home LabUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		EB5D12E02F3753B600872FC9 /* OperationsClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OperationsClient.swift; sourceTree = "<group>"; };
+		EB5D12E22F3753BB00872FC9 /* OperationsServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OperationsServer.swift; sourceTree = "<group>"; };
+		EB5D12E42F3753CB00872FC9 /* OperationsHostsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OperationsHostsView.swift; sourceTree = "<group>"; };
+		EB5D12E82F37554B00872FC9 /* OperationsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OperationsViewModel.swift; sourceTree = "<group>"; };
+		EBD2E8462F36DA0B0089B87E /* VMSnapshotsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMSnapshotsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -79,6 +94,12 @@
 				EB4F68312F36406D004B5D83 /* Home LabTests */,
 				EB4F683B2F36406D004B5D83 /* Home LabUITests */,
 				EB4F68202F36406C004B5D83 /* Products */,
+				EBD2E8462F36DA0B0089B87E /* VMSnapshotsView.swift */,
+				EB5D12E02F3753B600872FC9 /* OperationsClient.swift */,
+				EB5D12E22F3753BB00872FC9 /* OperationsServer.swift */,
+				EB5D12E42F3753CB00872FC9 /* OperationsHostsView.swift */,
+				EB5D12E82F37554B00872FC9 /* OperationsViewModel.swift */,
+				EB3D5B272F3761EF00481C92 /* OperationsHostDetailView.swift */,
 			);
 			sourceTree = "<group>";
 		};
@@ -236,6 +257,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EBD2E8472F36DA0B0089B87E /* VMSnapshotsView.swift in Sources */,
+				EB3D5B282F3761EF00481C92 /* OperationsHostDetailView.swift in Sources */,
+				EB5D12E92F37554B00872FC9 /* OperationsViewModel.swift in Sources */,
+				EB5D12E12F3753B600872FC9 /* OperationsClient.swift in Sources */,
+				EB5D12E52F3753CB00872FC9 /* OperationsHostsView.swift in Sources */,
+				EB5D12E32F3753BB00872FC9 /* OperationsServer.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

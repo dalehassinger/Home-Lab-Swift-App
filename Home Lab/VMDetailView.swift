@@ -179,18 +179,30 @@ struct VMDetailView: View {
                                     .font(.subheadline)
                                     .foregroundStyle(.secondary)
                                 if let storageCommitted, let storageTotal {
-                                    HStack(alignment: .firstTextBaseline, spacing: 8) {
-                                        Text(formattedBytes(storageCommitted))
-                                            .font(.title)
-                                            .fontWeight(.semibold)
-                                        Text("of \(formattedBytes(storageTotal))")
-                                            .font(.subheadline)
-                                            .foregroundStyle(.secondary)
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        HStack(alignment: .firstTextBaseline, spacing: 8) {
+                                            Text(formattedBytes(storageCommitted))
+                                                .font(.title)
+                                                .fontWeight(.semibold)
+                                            Text("used")
+                                                .font(.caption)
+                                                .foregroundStyle(.secondary)
+                                        }
                                         
-                                        if let storageUsagePercent {
-                                            Text("(\(String(format: "%.1f", storageUsagePercent))% used)")
+                                        HStack(spacing: 4) {
+                                            Text("Total: \(formattedBytes(storageTotal))")
                                                 .font(.subheadline)
-                                                .foregroundStyle(storageUsageColor(storageUsagePercent))
+                                                .foregroundStyle(.secondary)
+                                            
+                                            if let storageUsagePercent {
+                                                Text("•")
+                                                    .font(.subheadline)
+                                                    .foregroundStyle(.tertiary)
+                                                
+                                                Text("\(String(format: "%.1f", storageUsagePercent))% used")
+                                                    .font(.subheadline)
+                                                    .foregroundStyle(storageUsageColor(storageUsagePercent))
+                                            }
                                         }
                                     }
                                 } else {
@@ -222,6 +234,36 @@ struct VMDetailView: View {
             if !disks.isEmpty {
                 GroupBox {
                     VStack(alignment: .leading, spacing: 0) {
+                        // Summary row showing total used storage
+                        if let storageCommitted {
+                            HStack {
+                                Image(systemName: "chart.pie.fill")
+                                    .font(.title2)
+                                    .foregroundStyle(.orange)
+                                    .frame(width: 40)
+                                
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("Total Used")
+                                        .font(.subheadline)
+                                        .foregroundStyle(.secondary)
+                                    
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(formattedBytes(storageCommitted))
+                                            .font(.title3)
+                                            .fontWeight(.semibold)
+                                        Text("Across all disks")
+                                            .font(.caption2)
+                                            .foregroundStyle(.tertiary)
+                                    }
+                                }
+                                
+                                Spacer()
+                            }
+                            .padding()
+                            
+                            Divider()
+                        }
+                        
                         ForEach(Array(disks.enumerated()), id: \.element.id) { index, disk in
                             HStack {
                                 Image(systemName: "internaldrive.fill")
@@ -233,9 +275,21 @@ struct VMDetailView: View {
                                     Text(disk.label ?? "Disk \(index + 1)")
                                         .font(.subheadline)
                                         .foregroundStyle(.secondary)
-                                    Text(formattedCapacity(disk.capacity))
-                                        .font(.title3)
-                                        .fontWeight(.semibold)
+                                    
+                                    if let capacity = disk.capacity {
+                                        VStack(alignment: .leading, spacing: 2) {
+                                            Text(formattedCapacity(capacity))
+                                                .font(.title3)
+                                                .fontWeight(.semibold)
+                                            Text("Total capacity")
+                                                .font(.caption2)
+                                                .foregroundStyle(.tertiary)
+                                        }
+                                    } else {
+                                        Text("—")
+                                            .font(.title3)
+                                            .foregroundStyle(.secondary)
+                                    }
                                 }
                                 
                                 Spacer()
@@ -275,9 +329,19 @@ struct VMDetailView: View {
                                             .lineLimit(2)
                                     }
                                     if let createTime = snapshot.create_time {
-                                        Text(formattedDate(createTime))
-                                            .font(.caption2)
-                                            .foregroundStyle(.tertiary)
+                                        HStack(spacing: 4) {
+                                            Text(formattedDate(createTime))
+                                                .font(.caption2)
+                                                .foregroundStyle(.tertiary)
+                                            
+                                            Text("•")
+                                                .font(.caption2)
+                                                .foregroundStyle(.tertiary)
+                                            
+                                            Text(snapshotAge(createTime))
+                                                .font(.caption2)
+                                                .foregroundStyle(snapshotAgeColor(createTime))
+                                        }
                                     }
                                 }
                                 
@@ -299,7 +363,9 @@ struct VMDetailView: View {
             .padding()
         }
         .navigationTitle("Virtual Machine")
+#if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
+#endif
         .task {
             await load()
         }
@@ -431,6 +497,100 @@ struct VMDetailView: View {
         formatter.countStyle = .decimal
         formatter.includesUnit = true
         return formatter.string(fromByteCount: bytes)
+    }
+    
+    private func snapshotAge(_ dateString: String) -> String {
+        let isoFormatter = ISO8601DateFormatter()
+        isoFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        
+        var date: Date?
+        if let parsedDate = isoFormatter.date(from: dateString) {
+            date = parsedDate
+        } else {
+            // Fallback: try without fractional seconds
+            isoFormatter.formatOptions = [.withInternetDateTime]
+            date = isoFormatter.date(from: dateString)
+        }
+        
+        guard let snapshotDate = date else {
+            return "unknown age"
+        }
+        
+        let calendar = Calendar.current
+        let now = Date()
+        let components = calendar.dateComponents([.day, .hour], from: snapshotDate, to: now)
+        
+        if let days = components.day {
+            if days == 0 {
+                if let hours = components.hour {
+                    if hours == 0 {
+                        return "just now"
+                    } else if hours == 1 {
+                        return "1 hour ago"
+                    } else {
+                        return "\(hours) hours ago"
+                    }
+                }
+                return "today"
+            } else if days == 1 {
+                return "1 day old"
+            } else if days < 30 {
+                return "\(days) days old"
+            } else if days < 365 {
+                let months = days / 30
+                if months == 1 {
+                    return "1 month old"
+                } else {
+                    return "\(months) months old"
+                }
+            } else {
+                let years = days / 365
+                if years == 1 {
+                    return "1 year old"
+                } else {
+                    return "\(years) years old"
+                }
+            }
+        }
+        
+        return "unknown age"
+    }
+    
+    private func snapshotAgeColor(_ dateString: String) -> Color {
+        let isoFormatter = ISO8601DateFormatter()
+        isoFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        
+        var date: Date?
+        if let parsedDate = isoFormatter.date(from: dateString) {
+            date = parsedDate
+        } else {
+            // Fallback: try without fractional seconds
+            isoFormatter.formatOptions = [.withInternetDateTime]
+            date = isoFormatter.date(from: dateString)
+        }
+        
+        guard let snapshotDate = date else {
+            return .secondary
+        }
+        
+        let calendar = Calendar.current
+        let now = Date()
+        let components = calendar.dateComponents([.day], from: snapshotDate, to: now)
+        
+        if let days = components.day {
+            switch days {
+            case 0...7:
+                return .green  // Less than a week old
+            case 8...30:
+                return .yellow  // 1 week to 1 month
+            case 31...90:
+                return .orange  // 1-3 months
+            default:
+                return .red  // Older than 3 months
+            }
+        }
+        
+        return .secondary
     }
 }
 

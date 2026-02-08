@@ -36,6 +36,7 @@ final class VCenterViewModel {
             }
         }
     }
+    var vmsWithSnapshotsCount: Int = 0
 
     let client: VCenterClient
 
@@ -90,6 +91,30 @@ final class VCenterViewModel {
             print("🔴 Error loading Hosts: \(error)")
             hostState = .error(error.localizedDescription)
         }
+    }
+    
+    @MainActor
+    func loadVMsWithSnapshotsCount() async {
+        print("📸 Loading VMs with snapshots count...")
+        var count = 0
+        
+        // Filter out vCLS VMs
+        let filteredVMs = vms.filter { !$0.name.hasPrefix("vCLS-") }
+        
+        for vm in filteredVMs {
+            do {
+                let snapshots = try await client.fetchVMSnapshots(id: vm.id)
+                if !snapshots.isEmpty {
+                    count += 1
+                }
+            } catch {
+                // Continue counting even if one VM fails
+                print("⚠️ Could not fetch snapshots for VM \(vm.name): \(error)")
+            }
+        }
+        
+        vmsWithSnapshotsCount = count
+        print("📸 Found \(count) VMs with snapshots")
     }
     
     @MainActor

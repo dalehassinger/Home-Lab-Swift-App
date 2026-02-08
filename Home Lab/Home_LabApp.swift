@@ -14,6 +14,7 @@ struct Home_LabApp: App {
         let schema = Schema([
             Item.self,
             VCenterServer.self,
+            OperationsServer.self,
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
