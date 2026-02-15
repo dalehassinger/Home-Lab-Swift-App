@@ -67,8 +67,15 @@ A SwiftUI-based management application for VMware vCenter and VMware Aria Operat
   - Local network communication (HTTP)
 
 ### User Interface
+- **Liquid Glass Design**: Modern Apple design language with dynamic materials
+  - Interactive glass effects with real-time blur and transparency
+  - Touch-responsive materials that react to user interaction
+  - Dynamic light and color reflection from surrounding content
+  - Smooth morphing transitions between UI states
+  - Glass effect containers and buttons throughout the interface
+  
 - **Dual Platform Support**: Native SwiftUI UI for both iOS and macOS
-  - iOS: Card-based tile interface with gradient styling
+  - iOS: Card-based tile interface with Liquid Glass styling
   - macOS: Traditional sidebar navigation with split view
   
 - **Dark Mode Design**: Elegant dark theme with gradient backgrounds
@@ -197,6 +204,14 @@ Home Lab/
 ## Recent Changes
 
 ### February 2026
+- **Liquid Glass Design**: Complete UI overhaul with Apple's modern Liquid Glass design language
+  - Interactive glass effects with blur and transparency
+  - Dynamic light and color reflection from surrounding content
+  - Touch-responsive glass materials throughout the interface
+  - Glass effect containers for grouped content
+  - Glass button styles with interactive feedback
+  - Smooth transitions and morphing between UI states
+  - Enhanced visual depth with layered glass surfaces
 - **Electricity usage monitoring**: Added support for Shelly smart switches
 - **Energy tracking**: Monitor power consumption and total energy usage
 - **Multi-device support**: Manage multiple Shelly devices simultaneously
