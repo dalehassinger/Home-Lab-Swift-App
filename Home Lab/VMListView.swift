@@ -5,6 +5,8 @@ struct VMListView: View {
     @Bindable var viewModel: VCenterViewModel
     @State private var showPoweredOnOnly = false
     @State private var searchText = ""
+    @State private var lastUpdated: Date? = nil
+    @State private var isRefreshing = false
     
     /// Filters out vCLS (vSphere Cluster Services) VMs and optionally filters by power state and search text
     private var filteredVMs: [VCenterVM] {
@@ -100,9 +102,20 @@ struct VMListView: View {
                 
                 Spacer()
                 
+                if let lastUpdated {
+                    Text("Updated " + lastUpdated.formatted(date: .omitted, time: .shortened))
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
+                
                 Text("\(filteredVMs.count) VMs")
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                
+                if isRefreshing {
+                    ProgressView()
+                        .scaleEffect(0.7)
+                }
             }
             .padding(.horizontal)
             .padding(.vertical, 8)
@@ -135,19 +148,25 @@ struct VMListView: View {
             }
         }
         .navigationTitle("Virtual Machines")
-        .task {
-            await viewModel.loadVMs()
-        }
         .refreshable {
+            isRefreshing = true
             await viewModel.loadVMs()
+            lastUpdated = Date()
+            isRefreshing = false
         }
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button {
-                    Task { await viewModel.loadVMs() }
+                    Task {
+                        isRefreshing = true
+                        await viewModel.loadVMs()
+                        lastUpdated = Date()
+                        isRefreshing = false
+                    }
                 } label: {
                     Label("Refresh", systemImage: "arrow.clockwise")
                 }
+                .disabled(isRefreshing)
             }
         }
     }

@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import OSLog
 
 struct OperationsHostDetailView: View {
     let host: OperationsHost
@@ -15,10 +16,11 @@ struct OperationsHostDetailView: View {
     @State private var isLoading = false
     @State private var errorMessage: String?
     
+    private let logger = Logger(subsystem: "com.homelab.app", category: "OperationsHostDetailView")
+    
     init(host: OperationsHost, client: OperationsClient) {
         self.host = host
         self.client = client
-        print("🎬 OperationsHostDetailView initialized for: \(host.name)")
     }
     
     var body: some View {
@@ -413,10 +415,8 @@ struct OperationsHostDetailView: View {
         .frame(minWidth: 700, minHeight: 500)
 #endif
         .onAppear {
-            print("🎬 OperationsHostDetailView appeared")
         }
         .task {
-            print("🎬 Task modifier triggered")
             await loadStats()
         }
         .toolbar {
@@ -432,31 +432,22 @@ struct OperationsHostDetailView: View {
     
     @MainActor
     private func loadStats() async {
-        print("📊 loadStats called for: \(host.name)")
         guard let resourceID = host.identifier else {
-            print("❌ No resource ID available")
             errorMessage = "No resource ID available"
             return
         }
         
-        print("📊 Resource ID: \(resourceID)")
         isLoading = true
         errorMessage = nil
-        print("📊 Starting to fetch stats...")
         
         do {
             let fetchedStats = try await client.fetchStats(for: resourceID)
             stats = fetchedStats
-            print("✅ Stats loaded successfully")
-            print("   CPU Usage: \(fetchedStats.cpuUsagePercent ?? -1)%")
-            print("   Memory Usage: \(fetchedStats.memUsagePercent ?? -1)%")
         } catch {
-            print("❌ Error loading stats: \(error)")
             errorMessage = error.localizedDescription
         }
         
         isLoading = false
-        print("📊 Loading complete. isLoading=\(isLoading), hasStats=\(stats != nil), hasError=\(errorMessage != nil)")
     }
     
     private func colorForHealth(_ colorName: String) -> Color {
@@ -505,3 +496,4 @@ struct HostStats {
     var memGrantedGB: Double?
     var memAllocatedToVMsGB: Double?
 }
+

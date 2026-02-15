@@ -13,17 +13,21 @@ struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @Query(sort: \VCenterServer.name) private var servers: [VCenterServer]
     @Query(sort: \OperationsServer.name) private var operationsServers: [OperationsServer]
+    @Query(sort: \ShellyDevice.name) private var shellyDevices: [ShellyDevice]
     
     @State private var showingAddServer = false
     @State private var editingServer: VCenterServer?
     @State private var showingAddOperationsServer = false
     @State private var editingOperationsServer: OperationsServer?
+    @State private var showingAddShellyDevice = false
+    @State private var editingShellyDevice: ShellyDevice?
     
     // Button visibility settings
     @AppStorage("showVirtualMachinesButton") private var showVirtualMachinesButton = true
     @AppStorage("showHostsButton") private var showHostsButton = true
     @AppStorage("showVMSnapshotsButton") private var showVMSnapshotsButton = true
     @AppStorage("showOperationsHostsButton") private var showOperationsHostsButton = true
+    @AppStorage("showElectricityUsageButton") private var showElectricityUsageButton = true
     
     var body: some View {
         NavigationStack {
@@ -206,6 +210,85 @@ struct SettingsView: View {
 #endif
                         }
                         
+                        // Shelly Devices Section
+                        Section {
+                            ForEach(shellyDevices) { device in
+                                HStack(spacing: 0) {
+                                    Button {
+                                        editingShellyDevice = device
+                                    } label: {
+                                        HStack {
+                                            VStack(alignment: .leading, spacing: 4) {
+                                                HStack {
+                                                    Text(device.name)
+                                                        .font(.headline)
+                                                    if device.isEnabled {
+                                                        Image(systemName: "checkmark.circle.fill")
+                                                            .foregroundStyle(.green)
+                                                            .font(.caption)
+                                                    }
+                                                }
+                                                Text(device.ipAddress)
+                                                    .font(.caption)
+                                                    .foregroundStyle(.secondary)
+                                                Text(device.isEnabled ? "Enabled" : "Disabled")
+                                                    .font(.caption)
+                                                    .foregroundStyle(device.isEnabled ? .green : .secondary)
+                                            }
+                                            Spacer()
+                                            Image(systemName: "chevron.right")
+                                                .font(.caption)
+                                                .foregroundStyle(.tertiary)
+                                        }
+                                        .contentShape(Rectangle())
+                                    }
+                                    .buttonStyle(.plain)
+                                    
+#if os(macOS)
+                                    Button(role: .destructive) {
+                                        deleteShellyDevice(device)
+                                    } label: {
+                                        Image(systemName: "trash")
+                                            .foregroundStyle(.red)
+                                    }
+                                    .buttonStyle(.borderless)
+                                    .help("Delete this device")
+#endif
+                                }
+                                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                    Button(role: .destructive) {
+                                        deleteShellyDevice(device)
+                                    } label: {
+                                        Label("Delete", systemImage: "trash")
+                                    }
+                                }
+                                .contextMenu {
+                                    Button(role: .destructive) {
+                                        deleteShellyDevice(device)
+                                    } label: {
+                                        Label("Delete Device", systemImage: "trash")
+                                    }
+                                }
+                            }
+                            .onDelete(perform: deleteShellyDevices)
+                            
+                            Button {
+                                showingAddShellyDevice = true
+                            } label: {
+                                Label("Add Shelly Device", systemImage: "plus.circle")
+                            }
+                        } header: {
+                            Text("Shelly Smart Switches (\(shellyDevices.count))")
+                        } footer: {
+#if os(macOS)
+                            Text("Monitor electricity usage • Click trash icon to delete")
+                                .font(.caption2)
+#else
+                            Text("Monitor electricity usage • Swipe left to delete")
+                                .font(.caption2)
+#endif
+                        }
+                        
                         // Display Options Section
                         Section {
                             Toggle(isOn: $showVirtualMachinesButton) {
@@ -227,6 +310,11 @@ struct SettingsView: View {
                                 Label("Operations ESXi Hosts", systemImage: "chart.bar.fill")
                             }
                             .tint(.green)
+                            
+                            Toggle(isOn: $showElectricityUsageButton) {
+                                Label("Electricity Usage", systemImage: "bolt.fill")
+                            }
+                            .tint(.yellow)
                         } header: {
                             Text("Main Screen Buttons")
                         } footer: {
@@ -263,6 +351,12 @@ struct SettingsView: View {
             .sheet(item: $editingOperationsServer) { server in
                 EditOperationsServerView(server: server)
             }
+            .sheet(isPresented: $showingAddShellyDevice) {
+                AddShellyDeviceView()
+            }
+            .sheet(item: $editingShellyDevice) { device in
+                EditShellyDeviceView(device: device)
+            }
         }
 #if os(macOS)
         .frame(minWidth: 600, minHeight: 400)
@@ -294,6 +388,20 @@ struct SettingsView: View {
     private func deleteOperationsServer(_ server: OperationsServer) {
         withAnimation {
             modelContext.delete(server)
+        }
+    }
+    
+    private func deleteShellyDevices(offsets: IndexSet) {
+        withAnimation {
+            for index in offsets {
+                modelContext.delete(shellyDevices[index])
+            }
+        }
+    }
+    
+    private func deleteShellyDevice(_ device: ShellyDevice) {
+        withAnimation {
+            modelContext.delete(device)
         }
     }
 }
@@ -684,6 +792,157 @@ struct EditOperationsServerView: View {
         server.username = username
         server.password = password
         server.isDefault = isDefault
+        
+        // Explicitly save the context
+        do {
+            try modelContext.save()
+        } catch {
+            // Handle error silently or show alert in production
+        }
+        
+        dismiss()
+    }
+}
+
+// MARK: - Shelly Device Management
+
+struct AddShellyDeviceView: View {
+    @Environment(\.modelContext) private var modelContext
+    @Environment(\.dismiss) private var dismiss
+    @Query private var existingDevices: [ShellyDevice]
+    
+    @State private var name = ""
+    @State private var ipAddress = ""
+    @State private var isEnabled = true
+    
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    TextField("Name", text: $name)
+                        .textContentType(.organizationName)
+                    TextField("IP Address", text: $ipAddress)
+                        .textContentType(.URL)
+#if os(iOS)
+                        .autocapitalization(.none)
+                        .keyboardType(.decimalPad)
+#endif
+                } header: {
+                    Text("Device Information")
+                } footer: {
+                    Text("Example: 192.168.1.100")
+                }
+                
+                Section {
+                    Toggle("Enable Monitoring", isOn: $isEnabled)
+                } footer: {
+                    Text("When enabled, this device will be monitored for electricity usage")
+                }
+            }
+            .navigationTitle("Add Shelly Device")
+#if os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+#endif
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                }
+                ToolbarItem(placement: .primaryAction) {
+                    Button("Save") {
+                        saveDevice()
+                    }
+                    .disabled(name.isEmpty || ipAddress.isEmpty)
+                }
+            }
+        }
+    }
+    
+    private func saveDevice() {
+        let newDevice = ShellyDevice(
+            name: name,
+            ipAddress: ipAddress,
+            isEnabled: isEnabled
+        )
+        
+        modelContext.insert(newDevice)
+        dismiss()
+    }
+}
+struct EditShellyDeviceView: View {
+    @Environment(\.modelContext) private var modelContext
+    @Environment(\.dismiss) private var dismiss
+    @Query private var allDevices: [ShellyDevice]
+    
+    var device: ShellyDevice
+    
+    @State private var name: String = ""
+    @State private var ipAddress: String = ""
+    @State private var isEnabled: Bool = true
+    @State private var hasLoaded: Bool = false
+    
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    TextField("Name", text: $name, prompt: Text("Enter device name"))
+                    TextField("IP Address", text: $ipAddress, prompt: Text("192.168.1.100"))
+#if os(iOS)
+                        .autocapitalization(.none)
+                        .keyboardType(.decimalPad)
+#endif
+                } header: {
+                    Text("Device Information")
+                }
+                
+                Section {
+                    Toggle("Enable Monitoring", isOn: $isEnabled)
+                } footer: {
+                    Text("When enabled, this device will be monitored for electricity usage")
+                }
+            }
+            .navigationTitle("Edit Shelly Device")
+#if os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+#endif
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                }
+                ToolbarItem(placement: .primaryAction) {
+                    Button("Save") {
+                        saveChanges()
+                    }
+                    .disabled(name.isEmpty || ipAddress.isEmpty)
+#if os(macOS)
+                    .keyboardShortcut(.defaultAction)
+#endif
+                }
+            }
+            .task {
+                loadData()
+            }
+            .onAppear {
+                loadData()
+            }
+        }
+    }
+    
+    private func loadData() {
+        name = device.name
+        ipAddress = device.ipAddress
+        isEnabled = device.isEnabled
+        hasLoaded = true
+    }
+    
+    private func saveChanges() {
+        // Update the device object
+        device.name = name
+        device.ipAddress = ipAddress
+        device.isEnabled = isEnabled
         
         // Explicitly save the context
         do {

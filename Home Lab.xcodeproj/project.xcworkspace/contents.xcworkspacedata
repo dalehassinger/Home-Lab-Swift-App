@@ -4,4 +4,22 @@
    <FileRef
       location = "self:">
    </FileRef>
+   <FileRef
+      location = "group:Logger.swift">
+   </FileRef>
+   <FileRef
+      location = "group:NetworkSwitchClient.swift">
+   </FileRef>
+   <FileRef
+      location = "group:NetworkSwitchView.swift">
+   </FileRef>
+   <FileRef
+      location = "group:LIQUID_GLASS_MODERNIZATION.md">
+   </FileRef>
+   <FileRef
+      location = "group:GLASS_CODE_EXAMPLES.swift">
+   </FileRef>
+   <FileRef
+      location = "group:SHELLY_TROUBLESHOOTING.md">
+   </FileRef>
 </Workspace>

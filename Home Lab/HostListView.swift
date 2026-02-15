@@ -2,6 +2,8 @@ import SwiftUI
 
 struct HostListView: View {
     @Bindable var viewModel: VCenterViewModel
+    @State private var lastUpdated: Date? = nil
+    @State private var isRefreshing = false
 
     var body: some View {
         List {
@@ -47,18 +49,30 @@ struct HostListView: View {
             }
         }
         .navigationTitle("Hosts")
-        .task {
-            if viewModel.hosts.isEmpty {
-                await viewModel.loadHosts()
-            }
-        }
         .toolbar {
+            ToolbarItem(placement: .status) {
+                if let lastUpdated {
+                    Text("Updated " + lastUpdated.formatted(date: .omitted, time: .shortened))
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                    if isRefreshing {
+                        ProgressView()
+                            .scaleEffect(0.7)
+                    }
+                }
+            }
             ToolbarItem(placement: .primaryAction) {
                 Button {
-                    Task { await viewModel.loadHosts() }
+                    Task {
+                        isRefreshing = true
+                        await viewModel.loadHosts()
+                        lastUpdated = Date()
+                        isRefreshing = false
+                    }
                 } label: {
                     Label("Refresh", systemImage: "arrow.clockwise")
                 }
+                .disabled(isRefreshing)
             }
         }
     }

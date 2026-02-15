@@ -397,7 +397,7 @@ final class VCenterClient: NSObject, URLSessionDelegate {
         }
         
         let xmlString = String(data: soapData, encoding: .utf8) ?? ""
-        print("🟠 SOAP Snapshot Response:\n\(xmlString)")
+        // Removed print line here as per instructions
         
         // Parse snapshot information from XML
         var snapshots: [VCenterVMSnapshot] = []

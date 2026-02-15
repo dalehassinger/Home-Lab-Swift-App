@@ -12,7 +12,7 @@
 		EB5D12E32F3753BB00872FC9 /* OperationsServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB5D12E22F3753BB00872FC9 /* OperationsServer.swift */; };
 		EB5D12E52F3753CB00872FC9 /* OperationsHostsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB5D12E42F3753CB00872FC9 /* OperationsHostsView.swift */; };
 		EB5D12E92F37554B00872FC9 /* OperationsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB5D12E82F37554B00872FC9 /* OperationsViewModel.swift */; };
-		EB7BC0F92F380D0A00011E35 /* README 2.md in Resources */ = {isa = PBXBuildFile; fileRef = EB7BC0F82F380D0A00011E35 /* README 2.md */; };
+		EB7BC0FB2F380E4100011E35 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = EB7BC0FA2F380E4100011E35 /* README.md */; };
 		EBD2E8472F36DA0B0089B87E /* VMSnapshotsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBD2E8462F36DA0B0089B87E /* VMSnapshotsView.swift */; };
 /* End PBXBuildFile section */
 
@@ -42,7 +42,7 @@
 		EB5D12E22F3753BB00872FC9 /* OperationsServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OperationsServer.swift; sourceTree = "<group>"; };
 		EB5D12E42F3753CB00872FC9 /* OperationsHostsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OperationsHostsView.swift; sourceTree = "<group>"; };
 		EB5D12E82F37554B00872FC9 /* OperationsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OperationsViewModel.swift; sourceTree = "<group>"; };
-		EB7BC0F82F380D0A00011E35 /* README 2.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "README 2.md"; sourceTree = "<group>"; };
+		EB7BC0FA2F380E4100011E35 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		EBD2E8462F36DA0B0089B87E /* VMSnapshotsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMSnapshotsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -102,7 +102,7 @@
 				EB5D12E42F3753CB00872FC9 /* OperationsHostsView.swift */,
 				EB5D12E82F37554B00872FC9 /* OperationsViewModel.swift */,
 				EB3D5B272F3761EF00481C92 /* OperationsHostDetailView.swift */,
-				EB7BC0F82F380D0A00011E35 /* README 2.md */,
+				EB7BC0FA2F380E4100011E35 /* README.md */,
 			);
 			sourceTree = "<group>";
 		};
@@ -236,7 +236,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				EB7BC0F92F380D0A00011E35 /* README 2.md in Resources */,
+				EB7BC0FB2F380E4100011E35 /* README.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -334,6 +334,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = CNL5SCUWPN;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -357,6 +358,7 @@
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -396,6 +398,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = CNL5SCUWPN;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -412,6 +415,7 @@
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 			};
 			name = Release;
@@ -424,6 +428,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = CNL5SCUWPN;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -441,7 +446,7 @@
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Home-Lab-Info.plist";
-				INFOPLIST_KEY_LSApplicationCategoryType = "";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -481,6 +486,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = CNL5SCUWPN;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -498,7 +504,7 @@
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Home-Lab-Info.plist";
-				INFOPLIST_KEY_LSApplicationCategoryType = "";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -536,6 +542,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = CNL5SCUWPN;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
@@ -562,6 +569,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = CNL5SCUWPN;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
@@ -587,6 +595,7 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = CNL5SCUWPN;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
@@ -612,6 +621,7 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = CNL5SCUWPN;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.2;

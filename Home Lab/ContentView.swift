@@ -13,7 +13,6 @@ struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var servers: [VCenterServer]
     @Query private var operationsServers: [OperationsServer]
-    private let darkBackground = LinearGradient(gradient: Gradient(colors: [Color.black, Color(hue: 0.6, saturation: 0.2, brightness: 0.15)]), startPoint: .topLeading, endPoint: .bottomTrailing)
 
     @State private var viewModel: VCenterViewModel?
     @State private var operationsViewModel: OperationsViewModel?
@@ -25,35 +24,26 @@ struct ContentView: View {
     @AppStorage("showHostsButton") private var showHostsButton = true
     @AppStorage("showVMSnapshotsButton") private var showVMSnapshotsButton = true
     @AppStorage("showOperationsHostsButton") private var showOperationsHostsButton = true
+    @AppStorage("showElectricityUsageButton") private var showElectricityUsageButton = true
     
     // Computed property to get default server
     private var defaultServer: VCenterServer? {
         let server = servers.first(where: { $0.isDefault }) ?? servers.first
-        if let server = server {
-            print("🔍 Default server: \(server.name) - isDefault: \(server.isDefault)")
-        } else {
-            print("🔍 No default server found - servers count: \(servers.count)")
-        }
         return server
     }
     
     // Computed property to get default Operations server
     private var defaultOperationsServer: OperationsServer? {
         let server = operationsServers.first(where: { $0.isDefault }) ?? operationsServers.first
-        if let server = server {
-            print("🔍 Default Operations server: \(server.name) - isDefault: \(server.isDefault)")
-        } else {
-            print("🔍 No default Operations server found - servers count: \(operationsServers.count)")
-        }
         return server
     }
 
     var body: some View {
-        NavigationSplitView {
-            List {
 #if os(iOS)
-                // Header section
-                Section {
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: 20) {
+                    // Header section with Liquid Glass effect
                     VStack(spacing: 8) {
                         HStack {
                             VStack(alignment: .leading, spacing: 4) {
@@ -63,7 +53,7 @@ struct ContentView: View {
                                     .foregroundStyle(.white)
                                 Text("Management Servers Defined:")
                                     .font(.subheadline)
-                                    .foregroundStyle(.white.opacity(0.8))
+                                    .foregroundStyle(.white.opacity(0.9))
                             }
                             Spacer()
                             Button {
@@ -73,130 +63,178 @@ struct ContentView: View {
                                     .font(.title2)
                                     .foregroundStyle(.white)
                             }
+                            .buttonStyle(.glass)
                         }
                         
-                        // Server info
-                        VStack(spacing: 4) {
+                        // Server info with glass background
+                        VStack(spacing: 8) {
                             if let server = selectedServer ?? defaultServer {
                                 HStack {
                                     Image(systemName: "server.rack")
-                                        .foregroundStyle(.white.opacity(0.7))
+                                        .foregroundStyle(.white.opacity(0.8))
                                         .font(.caption2)
                                     Text("vCenter: \(server.name)")
                                         .font(.caption)
-                                        .foregroundStyle(.white.opacity(0.7))
+                                        .foregroundStyle(.white.opacity(0.9))
                                     Spacer()
                                 }
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 8)
+                                .glassEffect(.regular, in: .capsule)
                             }
                             
                             if let opsServer = defaultOperationsServer {
                                 HStack {
                                     Image(systemName: "chart.bar.fill")
-                                        .foregroundStyle(.white.opacity(0.7))
+                                        .foregroundStyle(.white.opacity(0.8))
                                         .font(.caption2)
                                     Text("Operations: \(opsServer.name)")
                                         .font(.caption)
-                                        .foregroundStyle(.white.opacity(0.7))
+                                        .foregroundStyle(.white.opacity(0.9))
                                     Spacer()
                                 }
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 8)
+                                .glassEffect(.regular, in: .capsule)
                             }
                         }
                     }
-                    .padding(.vertical, 8)
-                }
-                .listRowInsets(EdgeInsets())
-                .listRowBackground(Color.clear)
-                
-                // iOS: Card-style tiles
-                if let vm = viewModel {
-                    if showVirtualMachinesButton {
-                        NavigationLink {
-                            print("🔵🔵🔵 iOS VM NavigationLink activated")
-                            return VMListView(viewModel: vm)
-                        } label: {
-                            CardTile(title: "vCenter VMs", count: vm.vms.count, systemImage: "rectangle.stack.fill", colors: [Color.teal.opacity(0.9), Color.blue.opacity(0.8)])
-                                .padding(.vertical, 8)
-                        }
-                        .listRowInsets(EdgeInsets())
-                        .listRowBackground(Color.clear)
-                        .buttonStyle(PlainButtonStyle())
-                    }
-
-                    if showHostsButton {
-                        NavigationLink {
-                            print("🟠🟠🟠 iOS Host NavigationLink activated")
-                            return HostListView(viewModel: vm)
-                        } label: {
-                            CardTile(title: "vCenter Hosts", count: vm.hosts.count, systemImage: "server.rack", colors: [Color.orange.opacity(0.9), Color.red.opacity(0.8)])
-                                .padding(.vertical, 8)
-                        }
-                        .listRowInsets(EdgeInsets())
-                        .listRowBackground(Color.clear)
-                        .buttonStyle(PlainButtonStyle())
+                    .padding(.vertical, 12)
+                    .padding(.horizontal, 16)
+                    
+                    // Grid tiles with Liquid Glass container
+                    GlassEffectContainer(spacing: 20.0) {
+                        GridTilesView(
+                            viewModel: viewModel,
+                            operationsViewModel: operationsViewModel,
+                            defaultOperationsServer: defaultOperationsServer,
+                            showVirtualMachinesButton: showVirtualMachinesButton,
+                            showHostsButton: showHostsButton,
+                            showVMSnapshotsButton: showVMSnapshotsButton,
+                            showOperationsHostsButton: showOperationsHostsButton,
+                            showElectricityUsageButton: showElectricityUsageButton
+                        )
+                        .padding(.horizontal, 16)
                     }
                     
-                    if showVMSnapshotsButton {
-                        NavigationLink {
-                            print("📸📸📸 iOS VM Snapshots NavigationLink activated")
-                            return VMSnapshotsView(viewModel: vm)
-                        } label: {
-                            CardTile(title: "VMs with Snapshots", count: vm.vmsWithSnapshotsCount, systemImage: "camera.on.rectangle.fill", colors: [Color.red.opacity(0.9), Color.pink.opacity(0.8)])
-                                .padding(.vertical, 8)
-                        }
-                        .listRowInsets(EdgeInsets())
-                        .listRowBackground(Color.clear)
-                        .buttonStyle(PlainButtonStyle())
-                    }
-                }
-                
-                // Operations section - independent of vCenter
-                if showOperationsHostsButton, let opsServer = defaultOperationsServer {
-                    if let opsVM = operationsViewModel {
-                        NavigationLink {
-                            print("🟢🟢🟢 iOS Operations Hosts NavigationLink activated")
-                            return OperationsHostsView(operationsServer: opsServer)
-                        } label: {
-                            CardTile(title: "Operations Hosts", count: opsVM.hosts.count, systemImage: "chart.bar.fill", colors: [Color.green.opacity(0.9), Color.mint.opacity(0.8)])
-                                .padding(.vertical, 8)
-                        }
-                        .listRowInsets(EdgeInsets())
-                        .listRowBackground(Color.clear)
-                        .buttonStyle(PlainButtonStyle())
-                    } else {
-                        NavigationLink {
-                            print("🟢🟢🟢 iOS Operations Hosts NavigationLink activated")
-                            return OperationsHostsView(operationsServer: opsServer)
-                        } label: {
-                            CardTile(title: "Operations Hosts", count: 0, systemImage: "chart.bar.fill", colors: [Color.green.opacity(0.9), Color.mint.opacity(0.8)])
-                                .padding(.vertical, 8)
-                        }
-                        .listRowInsets(EdgeInsets())
-                        .listRowBackground(Color.clear)
-                        .buttonStyle(PlainButtonStyle())
-                    }
-                }
-                
-                if viewModel == nil {
-                    VStack(spacing: 12) {
-                        Image(systemName: "server.rack")
-                            .font(.system(size: 48))
-                            .foregroundStyle(.secondary)
-                        Text("No vCenter Server")
+                    // Status section with glass effects
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Status")
                             .font(.headline)
-                            .foregroundStyle(.secondary)
-                        Button {
-                            showingSettings = true
-                        } label: {
-                            Label("Add Server", systemImage: "plus.circle.fill")
+                            .foregroundStyle(.white.opacity(0.9))
+                            .padding(.horizontal, 16)
+                        
+                        GlassEffectContainer(spacing: 16.0) {
+                            VStack(spacing: 12) {
+                                // vCenter status row with glass effect
+                                HStack {
+                                    Image(systemName: connectionStatusIcon)
+                                        .foregroundStyle(connectionStatusColor)
+                                        .font(.title3)
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text("vCenter Connection")
+                                            .font(.subheadline)
+                                            .fontWeight(.medium)
+                                            .foregroundStyle(.white)
+                                        if let server = selectedServer ?? defaultServer {
+                                            Text(server.name)
+                                                .font(.caption)
+                                                .foregroundStyle(.white.opacity(0.8))
+                                        }
+                                        Text(connectionStatusText)
+                                            .font(.caption)
+                                            .foregroundStyle(connectionStatusColor)
+                                    }
+                                    Spacer()
+                                    Button {
+                                        Task { await initializeViewModel() }
+                                    } label: {
+                                        Image(systemName: "arrow.clockwise")
+                                            .font(.callout)
+                                    }
+                                    .buttonStyle(.glass)
+                                }
+                                .padding(16)
+                                .glassEffect(.regular.interactive(), in: .rect(cornerRadius: 16))
+                                
+                                // Operations status row with glass effect
+                                if let opsServer = defaultOperationsServer {
+                                    HStack {
+                                        Image(systemName: operationsConnectionStatusIcon)
+                                            .foregroundStyle(operationsConnectionStatusColor)
+                                            .font(.title3)
+                                        VStack(alignment: .leading, spacing: 4) {
+                                            Text("Operations Connection")
+                                                .font(.subheadline)
+                                                .fontWeight(.medium)
+                                                .foregroundStyle(.white)
+                                            Text(opsServer.name)
+                                                .font(.caption)
+                                                .foregroundStyle(.white.opacity(0.8))
+                                            Text(operationsConnectionStatusText)
+                                                .font(.caption)
+                                                .foregroundStyle(operationsConnectionStatusColor)
+                                        }
+                                        Spacer()
+                                        Button {
+                                            Task { await initializeOperationsViewModel() }
+                                        } label: {
+                                            Image(systemName: "arrow.clockwise")
+                                                .font(.callout)
+                                        }
+                                        .buttonStyle(.glass)
+                                    }
+                                    .padding(16)
+                                    .glassEffect(.regular.interactive(), in: .rect(cornerRadius: 16))
+                                }
+                            }
+                            .padding(.horizontal, 16)
                         }
-                        .buttonStyle(.borderedProminent)
                     }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 32)
-                    .listRowInsets(EdgeInsets())
-                    .listRowBackground(Color.clear)
+                    
+                    // Empty state when no vCenter server
+                    if viewModel == nil {
+                        VStack(spacing: 16) {
+                            Image(systemName: "server.rack")
+                                .font(.system(size: 56))
+                                .foregroundStyle(.white.opacity(0.6))
+                            Text("No vCenter Server")
+                                .font(.headline)
+                                .foregroundStyle(.white.opacity(0.9))
+                            Button {
+                                showingSettings = true
+                            } label: {
+                                Label("Add Server", systemImage: "plus.circle.fill")
+                            }
+                            .buttonStyle(.glassProminent)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 40)
+                        .padding(.horizontal, 16)
+                        .glassEffect(.regular, in: .rect(cornerRadius: 20))
+                        .padding(.horizontal, 16)
+                    }
                 }
+                .padding(.top, 8)
+                .padding(.bottom, 20)
+            }
+            .background(Color.black.ignoresSafeArea())
+        }
+        .tint(Color.green)
+        .preferredColorScheme(.dark)
+        .sheet(isPresented: $showingSettings) {
+            SettingsView()
+        }
+        .task(id: selectedServer?.id ?? defaultServer?.id) {
+            await initializeViewModel()
+        }
+        .task(id: defaultOperationsServer?.id) {
+            await initializeOperationsViewModel()
+        }
 #else
+        // macOS: Use NavigationStack instead of NavigationSplitView
+        NavigationStack {
+            List {
                 // macOS: Header
                 Section {
                     HStack {
@@ -234,8 +272,8 @@ struct ContentView: View {
                     Section("vCenter Resources") {
                         if showVirtualMachinesButton {
                             NavigationLink {
-                                print("🔵🔵🔵 macOS VM NavigationLink activated")
-                                return VMListView(viewModel: vm)
+                                VMListView(viewModel: vm)
+                                    .id("vmlist")
                             } label: {
                                 Label {
                                     HStack {
@@ -249,12 +287,13 @@ struct ContentView: View {
                                         .foregroundStyle(.teal)
                                 }
                             }
+                            .tag("vmlist")
                         }
                         
                         if showHostsButton {
                             NavigationLink {
-                                print("🟠🟠🟠 macOS Host NavigationLink activated")
-                                return HostListView(viewModel: vm)
+                                HostListView(viewModel: vm)
+                                    .id("hostlist")
                             } label: {
                                 Label {
                                     HStack {
@@ -268,12 +307,13 @@ struct ContentView: View {
                                         .foregroundStyle(.orange)
                                 }
                             }
+                            .tag("hostlist")
                         }
                         
                         if showVMSnapshotsButton {
                             NavigationLink {
-                                print("📸📸📸 macOS VM Snapshots NavigationLink activated")
-                                return VMSnapshotsView(viewModel: vm)
+                                VMSnapshotsView(viewModel: vm)
+                                    .id("snapshots")
                             } label: {
                                 Label {
                                     HStack {
@@ -287,6 +327,7 @@ struct ContentView: View {
                                         .foregroundStyle(.red)
                                 }
                             }
+                            .tag("snapshots")
                         }
                     }
                 }
@@ -295,8 +336,8 @@ struct ContentView: View {
                 if showOperationsHostsButton, let opsServer = defaultOperationsServer {
                     Section("VMware Aria Operations") {
                         NavigationLink {
-                            print("🟢🟢🟢 macOS Operations Hosts NavigationLink activated")
-                            return OperationsHostsView(operationsServer: opsServer)
+                            OperationsHostsView(operationsServer: opsServer)
+                                .id("operations")
                         } label: {
                             Label {
                                 HStack {
@@ -312,6 +353,25 @@ struct ContentView: View {
                                     .foregroundStyle(.green)
                             }
                         }
+                        .tag("operations")
+                    }
+                }
+                
+                // Electricity Usage section - independent
+                if showElectricityUsageButton {
+                    Section("Energy Monitoring") {
+                        NavigationLink {
+                            ElectricityUsageView()
+                                .id("electricity")
+                        } label: {
+                            Label {
+                                Text("Electricity Usage")
+                            } icon: {
+                                Image(systemName: "bolt.fill")
+                                    .foregroundStyle(.yellow)
+                            }
+                        }
+                        .tag("electricity")
                     }
                 }
                 
@@ -334,7 +394,6 @@ struct ContentView: View {
                         .padding(.vertical, 16)
                     }
                 }
-#endif
                 
                 Section {
                     HStack {
@@ -404,32 +463,7 @@ struct ContentView: View {
                 }
             }
             .scrollContentBackground(.hidden)
-            .background(
-                darkBackground
-            )
-#if os(macOS)
-            .navigationSplitViewColumnWidth(min: 200, ideal: 250)
-#endif
-        } detail: {
-            NavigationStack {
-                VStack(alignment: .leading, spacing: 16) {
-                    Spacer()
-                    VStack(spacing: 12) {
-                        Image(systemName: "square.grid.2x2")
-                            .font(.system(size: 48))
-                            .foregroundStyle(.secondary)
-                        Text("Choose a tile to view data")
-                            .font(.headline)
-                            .foregroundStyle(.secondary)
-                    }
-                    Spacer()
-                }
-                .padding()
-                .background(
-                    darkBackground
-                )
-                .scrollContentBackground(.hidden)
-            }
+            .background(Color.black)
         }
         .tint(Color.green)
         .preferredColorScheme(.dark)
@@ -442,30 +476,20 @@ struct ContentView: View {
         .task(id: defaultOperationsServer?.id) {
             await initializeOperationsViewModel()
         }
+#endif
     }
     
     @MainActor
     private func initializeViewModel() async {
-        print("🔄 initializeViewModel called")
-        print("   Selected server: \(selectedServer?.name ?? "none")")
-        print("   Default server: \(defaultServer?.name ?? "none")")
-        print("   Servers count: \(servers.count)")
-        
         guard let server = selectedServer ?? defaultServer else {
-            print("❌ No server available")
             viewModel = nil
             return
         }
         
         guard let url = URL(string: server.url) else {
-            print("❌ Invalid URL: \(server.url)")
             viewModel = nil
             return
         }
-        
-        print("✅ Creating ViewModel for: \(server.name)")
-        print("   URL: \(url)")
-        print("   Username: \(server.username)")
         
         let vm = VCenterViewModel(
             serverURL: url,
@@ -475,36 +499,22 @@ struct ContentView: View {
         
         viewModel = vm
         
-        print("🔵 Loading VMs...")
         await vm.loadVMs()
-        print("🟠 Loading Hosts...")
         await vm.loadHosts()
-        print("📸 Loading VM Snapshots count...")
         await vm.loadVMsWithSnapshotsCount()
-        print("✅ Connection attempt complete")
     }
     
     @MainActor
     private func initializeOperationsViewModel() async {
-        print("🔄 initializeOperationsViewModel called")
-        print("   Default Operations server: \(defaultOperationsServer?.name ?? "none")")
-        print("   Operations servers count: \(operationsServers.count)")
-        
         guard let server = defaultOperationsServer else {
-            print("❌ No Operations server available")
             operationsViewModel = nil
             return
         }
         
         guard let url = URL(string: server.url) else {
-            print("❌ Invalid Operations URL: \(server.url)")
             operationsViewModel = nil
             return
         }
-        
-        print("✅ Creating Operations ViewModel for: \(server.name)")
-        print("   URL: \(url)")
-        print("   Username: \(server.username)")
         
         let opsVM = OperationsViewModel(
             serverURL: url,
@@ -514,9 +524,7 @@ struct ContentView: View {
         
         operationsViewModel = opsVM
         
-        print("🟢 Loading Operations Hosts...")
         await opsVM.loadHosts()
-        print("✅ Operations connection attempt complete")
     }
     
     // Connection status computed properties
@@ -605,6 +613,195 @@ struct ContentView: View {
         }
     }
 }
+
+// MARK: - Grid Tiles View for iOS
+
+struct GridTilesView: View {
+    let viewModel: VCenterViewModel?
+    let operationsViewModel: OperationsViewModel?
+    let defaultOperationsServer: OperationsServer?
+    let showVirtualMachinesButton: Bool
+    let showHostsButton: Bool
+    let showVMSnapshotsButton: Bool
+    let showOperationsHostsButton: Bool
+    let showElectricityUsageButton: Bool
+    
+    // Define all possible tiles
+    private var visibleTiles: [TileData] {
+        var tiles: [TileData] = []
+        
+        if let vm = viewModel {
+            if showVirtualMachinesButton {
+                tiles.append(TileData(
+                    id: "vms",
+                    title: "vCenter VMs",
+                    count: vm.vms.count,
+                    systemImage: "rectangle.stack.fill",
+                    colors: [Color.teal.opacity(0.9), Color.blue.opacity(0.8)],
+                    destination: .vmList(vm)
+                ))
+            }
+            
+            if showHostsButton {
+                tiles.append(TileData(
+                    id: "hosts",
+                    title: "vCenter Hosts",
+                    count: vm.hosts.count,
+                    systemImage: "server.rack",
+                    colors: [Color.orange.opacity(0.9), Color.red.opacity(0.8)],
+                    destination: .hostList(vm)
+                ))
+            }
+            
+            if showVMSnapshotsButton {
+                tiles.append(TileData(
+                    id: "snapshots",
+                    title: "VM Snapshots",
+                    count: vm.vmsWithSnapshotsCount,
+                    systemImage: "camera.on.rectangle.fill",
+                    colors: [Color.red.opacity(0.9), Color.pink.opacity(0.8)],
+                    destination: .vmSnapshots(vm)
+                ))
+            }
+        }
+        
+        if showOperationsHostsButton, let opsServer = defaultOperationsServer {
+            let count = operationsViewModel?.hosts.count ?? 0
+            tiles.append(TileData(
+                id: "operations",
+                title: "Operations Hosts",
+                count: count,
+                systemImage: "chart.bar.fill",
+                colors: [Color.green.opacity(0.9), Color.mint.opacity(0.8)],
+                destination: .operationsHosts(opsServer)
+            ))
+        }
+        
+        if showElectricityUsageButton {
+            tiles.append(TileData(
+                id: "electricity",
+                title: "Electricity Usage",
+                count: 0, // Count not applicable for this tile
+                systemImage: "bolt.fill",
+                colors: [Color.yellow.opacity(0.9), Color.orange.opacity(0.8)],
+                destination: .electricityUsage
+            ))
+        }
+        
+        return tiles
+    }
+    
+    var body: some View {
+        LazyVGrid(columns: [
+            GridItem(.flexible(), spacing: 12),
+            GridItem(.flexible(), spacing: 12)
+        ], spacing: 12) {
+            ForEach(visibleTiles) { tile in
+                NavigationLink {
+                    tile.destination.view
+                        .id(tile.id)
+                } label: {
+                    CompactCardTile(
+                        title: tile.title,
+                        count: tile.count,
+                        systemImage: tile.systemImage,
+                        colors: tile.colors
+                    )
+                    .contentShape(Rectangle())
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Tile Data Model
+
+struct TileData: Identifiable {
+    let id: String
+    let title: String
+    let count: Int
+    let systemImage: String
+    let colors: [Color]
+    let destination: TileDestination
+}
+
+enum TileDestination {
+    case vmList(VCenterViewModel)
+    case hostList(VCenterViewModel)
+    case vmSnapshots(VCenterViewModel)
+    case operationsHosts(OperationsServer)
+    case electricityUsage
+    
+    @ViewBuilder
+    var view: some View {
+        switch self {
+        case .vmList(let vm):
+            VMListView(viewModel: vm)
+                .id("vmlist")
+        case .hostList(let vm):
+            HostListView(viewModel: vm)
+                .id("hostlist")
+        case .vmSnapshots(let vm):
+            VMSnapshotsView(viewModel: vm)
+                .id("snapshots")
+        case .operationsHosts(let server):
+            OperationsHostsView(operationsServer: server)
+                .id("operations")
+        case .electricityUsage:
+            ElectricityUsageView()
+                .id("electricity")
+        }
+    }
+}
+
+// MARK: - Compact Card Tile (for Grid) with Liquid Glass
+
+struct CompactCardTile: View {
+    let title: String
+    let count: Int
+    let systemImage: String
+    let colors: [Color]
+    
+    var body: some View {
+        VStack(spacing: 12) {
+            // Icon
+            Image(systemName: systemImage)
+                .font(.system(size: 36, weight: .semibold))
+                .foregroundStyle(.white)
+                .frame(height: 40)
+                .shadow(color: colors[0].opacity(0.5), radius: 8, x: 0, y: 2)
+            
+            // Count badge (only show if count > 0)
+            if count > 0 {
+                Text("\(count)")
+                    .font(.system(size: 28, weight: .bold))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 6)
+                    .glassEffect(.regular, in: .capsule)
+            } else {
+                // Spacer to maintain consistent height when no count
+                Color.clear
+                    .frame(height: 40)
+            }
+            
+            // Title
+            Text(title)
+                .font(.subheadline)
+                .fontWeight(.semibold)
+                .foregroundStyle(.white)
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
+                .minimumScaleFactor(0.8)
+        }
+        .frame(maxWidth: .infinity)
+        .frame(height: 160)
+        .padding(16)
+        .glassEffect(.regular.tint(colors[0]).interactive(), in: .rect(cornerRadius: 20))
+    }
+}
+
+// MARK: - Original Full-Width Card Tile (kept for macOS if needed)
 
 struct CardTile: View {
     let title: String

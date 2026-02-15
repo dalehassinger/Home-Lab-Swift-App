@@ -10,6 +10,7 @@ import SwiftUI
 import AppKit
 import ObjectiveC.runtime
 #endif
+import OSLog
 
 struct OperationsHostsView: View {
     let operationsServer: OperationsServer
@@ -83,7 +84,6 @@ struct OperationsHostsView: View {
                 List {
                     ForEach(hosts) { host in
                         HostRowView(host: host, onTap: {
-                            print("🟡 onTap closure called for: \(host.name)")
                             openDetailWindow(for: host)
                         })
                     }
@@ -110,7 +110,6 @@ struct OperationsHostsView: View {
             }
         }
         .sheet(item: $selectedHost) { host in
-            let _ = print("🎬 Creating sheet content for: \(host.name)")
             NavigationStack {
                 OperationsHostDetailView(host: host, client: client)
                     .navigationTitle(host.name)
@@ -136,31 +135,24 @@ struct OperationsHostsView: View {
         
         do {
             hosts = try await client.fetchESXiHosts()
-            print("🟢 Loaded \(hosts.count) ESXi hosts from Operations")
         } catch {
             errorMessage = error.localizedDescription
-            print("🔴 Error loading Operations hosts: \(error)")
         }
         
         isLoading = false
     }
     
     private func openDetailWindow(for host: OperationsHost) {
-        print("🟢 Opening detail window for: \(host.name)")
 #if os(macOS)
-        print("🟢 Creating detail view...")
         let detailView = OperationsHostDetailView(host: host, client: client)
-        print("🟢 Creating hosting controller...")
         let hostingController = NSHostingController(rootView: detailView)
         
-        print("🟢 Creating window...")
         let window = NSWindow(contentViewController: hostingController)
         window.title = host.name
         window.setContentSize(NSSize(width: 800, height: 600))
         window.styleMask = [.titled, .closable, .resizable, .miniaturizable]
         window.center()
         
-        print("🟢 Setting up window delegate...")
         // Set delegate to remove from array when closed
         let delegate = WindowDelegate {
             if let index = openWindows.firstIndex(of: window) {
@@ -170,19 +162,12 @@ struct OperationsHostsView: View {
         window.delegate = delegate
         objc_setAssociatedObject(window, "delegate", delegate, .OBJC_ASSOCIATION_RETAIN)
         
-        print("🟢 Making window visible...")
         window.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
         
-        // Keep window alive
         openWindows.append(window)
-        print("🟢 Window opened, total windows: \(openWindows.count)")
 #else
-        // iOS: Use sheet presentation
-        print("📱 Opening detail sheet on iOS...")
-        print("📱 Setting selectedHost to: \(host.name)")
         selectedHost = host
-        print("📱 selectedHost is now: \(selectedHost?.name ?? "nil")")
 #endif
     }
     
@@ -281,7 +266,6 @@ private struct HostRowView: View {
         .padding(.vertical, 4)
         .contentShape(Rectangle())
         .onTapGesture {
-            print("🔵 Host row tapped: \(host.name)")
             onTap()
         }
     }

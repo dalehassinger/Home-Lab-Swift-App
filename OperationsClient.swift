@@ -299,11 +299,6 @@ final class OperationsClient: NSObject, URLSessionDelegate {
             return nil
         }
         
-        // Debug: Print response to see structure
-        if let jsonString = String(data: data, encoding: .utf8) {
-            print("🟢 Resource detail response (first 1000 chars):\n\(String(jsonString.prefix(1000)))")
-        }
-        
         // Parse the response
         let resourceDetail = try JSONDecoder().decode(OperationsResourceDetail.self, from: data)
         

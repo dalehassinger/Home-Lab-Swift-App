@@ -7,6 +7,16 @@
 
 import SwiftUI
 
+fileprivate enum ISO8601Helper {
+    static func parse(_ dateString: String) -> Date? {
+        let isoFormatter = ISO8601DateFormatter()
+        isoFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        if let date = isoFormatter.date(from: dateString) { return date }
+        isoFormatter.formatOptions = [.withInternetDateTime]
+        return isoFormatter.date(from: dateString)
+    }
+}
+
 /// Represents a VM with its snapshot information
 struct VMWithSnapshots: Identifiable {
     let vm: VCenterVM
@@ -21,6 +31,8 @@ struct VMSnapshotsView: View {
     @State private var vmsWithSnapshots: [VMWithSnapshots] = []
     @State private var isLoading = false
     @State private var errorMessage: String?
+    @State private var lastUpdated: Date? = nil
+    @State private var isRefreshing: Bool = false
     
     var body: some View {
         Group {
@@ -88,56 +100,77 @@ struct VMSnapshotsView: View {
             await loadVMsWithSnapshots()
         }
         .refreshable {
+            isRefreshing = true
             await loadVMsWithSnapshots()
+            lastUpdated = Date()
+            isRefreshing = false
+        }
+        .safeAreaInset(edge: .top, spacing: 0) {
+            HStack(spacing: 12) {
+                if let lastUpdated {
+                    Text("Updated " + lastUpdated.formatted(date: .omitted, time: .shortened))
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
+                if isRefreshing {
+                    ProgressView()
+                        .scaleEffect(0.7)
+                }
+                Spacer()
+            }
+            .padding(.horizontal)
+            .padding(.vertical, 6)
+            .background(Color.gray.opacity(0.15))
         }
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button {
-                    Task { await loadVMsWithSnapshots() }
+                    Task {
+                        isRefreshing = true
+                        await loadVMsWithSnapshots()
+                        lastUpdated = Date()
+                        isRefreshing = false
+                    }
                 } label: {
                     Label("Refresh", systemImage: "arrow.clockwise")
                 }
+                .disabled(isRefreshing)
             }
         }
     }
     
-    @MainActor
     private func loadVMsWithSnapshots() async {
-        isLoading = true
-        errorMessage = nil
-        vmsWithSnapshots = []
-        
+        await MainActor.run {
+            isLoading = true
+            errorMessage = nil
+            vmsWithSnapshots = []
+        }
         do {
-            // Filter out vCLS VMs
-            let filteredVMs = viewModel.vms.filter { !$0.name.hasPrefix("vCLS-") }
-            
-            // Fetch snapshots for each VM
+            let filteredVMs = await MainActor.run { viewModel.vms.filter { !$0.name.hasPrefix("vCLS-") } }
             var results: [VMWithSnapshots] = []
-            
-            for vm in filteredVMs {
-                do {
-                    let snapshots = try await viewModel.client.fetchVMSnapshots(id: vm.id)
-                    if !snapshots.isEmpty {
-                        results.append(VMWithSnapshots(vm: vm, snapshots: snapshots))
+            try await withThrowingTaskGroup(of: VMWithSnapshots?.self) { group in
+                for vm in filteredVMs {
+                    group.addTask {
+                        do {
+                            let snapshots = try await viewModel.client.fetchVMSnapshots(id: vm.id)
+                            return snapshots.isEmpty ? nil : VMWithSnapshots(vm: vm, snapshots: snapshots)
+                        } catch {
+                            print("⚠️ Could not fetch snapshots for VM \(vm.name): \(error)")
+                            return nil
+                        }
                     }
-                } catch {
-                    // Continue with other VMs if one fails
-                    print("⚠️ Could not fetch snapshots for VM \(vm.name): \(error)")
+                }
+                for try await item in group {
+                    if let item { results.append(item) }
                 }
             }
-            
-            // Sort by VM name
-            vmsWithSnapshots = results.sorted {
-                $0.vm.name.localizedCaseInsensitiveCompare($1.vm.name) == .orderedAscending
-            }
-            
-            print("📸 Found \(vmsWithSnapshots.count) VMs with snapshots")
+            let sorted = results.sorted { $0.vm.name.localizedCaseInsensitiveCompare($1.vm.name) == .orderedAscending }
+            await MainActor.run { vmsWithSnapshots = sorted }
         } catch {
-            errorMessage = error.localizedDescription
+            await MainActor.run { errorMessage = error.localizedDescription }
             print("🔴 Error loading VMs with snapshots: \(error)")
         }
-        
-        isLoading = false
+        await MainActor.run { isLoading = false }
     }
 }
 
@@ -241,44 +274,17 @@ struct VMSnapshotCard: View {
     }
     
     private func formattedDate(_ dateString: String) -> String {
-        let isoFormatter = ISO8601DateFormatter()
-        isoFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        
-        if let date = isoFormatter.date(from: dateString) {
+        if let date = ISO8601Helper.parse(dateString) {
             let displayFormatter = DateFormatter()
             displayFormatter.dateStyle = .medium
             displayFormatter.timeStyle = .short
             return displayFormatter.string(from: date)
         }
-        
-        // Fallback: try without fractional seconds
-        isoFormatter.formatOptions = [.withInternetDateTime]
-        if let date = isoFormatter.date(from: dateString) {
-            let displayFormatter = DateFormatter()
-            displayFormatter.dateStyle = .medium
-            displayFormatter.timeStyle = .short
-            return displayFormatter.string(from: date)
-        }
-        
         return dateString
     }
     
     private func snapshotAge(_ dateString: String) -> String {
-        let isoFormatter = ISO8601DateFormatter()
-        isoFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        
-        var date: Date?
-        if let parsedDate = isoFormatter.date(from: dateString) {
-            date = parsedDate
-        } else {
-            // Fallback: try without fractional seconds
-            isoFormatter.formatOptions = [.withInternetDateTime]
-            date = isoFormatter.date(from: dateString)
-        }
-        
-        guard let snapshotDate = date else {
-            return "unknown age"
-        }
+        guard let snapshotDate = ISO8601Helper.parse(dateString) else { return "unknown age" }
         
         let calendar = Calendar.current
         let now = Date()
@@ -321,21 +327,7 @@ struct VMSnapshotCard: View {
     }
     
     private func snapshotAgeColor(_ dateString: String) -> Color {
-        let isoFormatter = ISO8601DateFormatter()
-        isoFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        
-        var date: Date?
-        if let parsedDate = isoFormatter.date(from: dateString) {
-            date = parsedDate
-        } else {
-            // Fallback: try without fractional seconds
-            isoFormatter.formatOptions = [.withInternetDateTime]
-            date = isoFormatter.date(from: dateString)
-        }
-        
-        guard let snapshotDate = date else {
-            return .secondary
-        }
+        guard let snapshotDate = ISO8601Helper.parse(dateString) else { return .secondary }
         
         let calendar = Calendar.current
         let now = Date()

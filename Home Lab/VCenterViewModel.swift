@@ -20,7 +20,7 @@ final class VCenterViewModel {
     var vmState: State = .idle
     var hostState: State = .idle
     var connectionState: ConnectionState = .disconnected
-    var vms: [VCenterVM] = [] {
+    private(set) var vms: [VCenterVM] = [] {
         didSet {
             print("📝 viewModel.vms was SET to \(vms.count) items")
             if let first = vms.first {
@@ -28,7 +28,7 @@ final class VCenterViewModel {
             }
         }
     }
-    var hosts: [VCenterHost] = [] {
+    private(set) var hosts: [VCenterHost] = [] {
         didSet {
             print("📝 viewModel.hosts was SET to \(hosts.count) items")
             if let first = hosts.first {
@@ -36,88 +36,72 @@ final class VCenterViewModel {
             }
         }
     }
-    var vmsWithSnapshotsCount: Int = 0
+    private(set) var vmsWithSnapshotsCount: Int = 0
 
     let client: VCenterClient
+    private var isLoadingVMs = false
+    private var isLoadingHosts = false
 
     init(serverURL: URL, username: String, password: String) {
         self.client = VCenterClient(baseURL: serverURL, username: username, password: password)
     }
 
-    @MainActor
     func loadVMs() async {
-        vmState = .loading
-        print("🔵 Loading VMs...")
-        
-        // Update connection state
-        if connectionState == .disconnected {
-            connectionState = .connecting
+        await MainActor.run {
+            vmState = .loading
+            if connectionState == .disconnected { connectionState = .connecting }
         }
-        
+        if isLoadingVMs { return }
+        isLoadingVMs = true
+        defer { isLoadingVMs = false }
         do {
             let list = try await client.fetchVMs()
-                .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
-            vms = list
-            print("🔵 Loaded \(vms.count) VMs into viewModel.vms")
-            if let first = vms.first {
-                print("🔵 First VM: \(first.name) (ID: \(first.id))")
+            let sorted = list.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+            await MainActor.run {
+                vms = sorted
+                vmState = .loaded
+                connectionState = .connected
             }
-            vmState = .loaded
-            connectionState = .connected
-            
-            // Test metrics API (only once when first connected)
             await testMetricsAPI()
         } catch {
-            print("🔴 Error loading VMs: \(error)")
-            vmState = .error(error.localizedDescription)
-            connectionState = .failed(error.localizedDescription)
+            await MainActor.run {
+                vmState = .error(error.localizedDescription)
+                connectionState = .failed(error.localizedDescription)
+            }
         }
     }
 
-    @MainActor
     func loadHosts() async {
-        hostState = .loading
-        print("🟠 Loading Hosts...")
+        await MainActor.run { hostState = .loading }
+        if isLoadingHosts { return }
+        isLoadingHosts = true
+        defer { isLoadingHosts = false }
         do {
             let list = try await client.fetchHosts()
-                .sorted { ($0.name ?? "").localizedCaseInsensitiveCompare($1.name ?? "") == .orderedAscending }
-            hosts = list
-            print("🟠 Loaded \(hosts.count) Hosts into viewModel.hosts")
-            if let first = hosts.first {
-                print("🟠 First Host: \(first.name ?? "unnamed") (ID: \(first.id))")
+            let sorted = list.sorted { ($0.name ?? "").localizedCaseInsensitiveCompare($1.name ?? "") == .orderedAscending }
+            await MainActor.run {
+                hosts = sorted
+                hostState = .loaded
             }
-            hostState = .loaded
         } catch {
-            print("🔴 Error loading Hosts: \(error)")
-            hostState = .error(error.localizedDescription)
+            await MainActor.run { hostState = .error(error.localizedDescription) }
         }
     }
     
-    @MainActor
     func loadVMsWithSnapshotsCount() async {
-        print("📸 Loading VMs with snapshots count...")
         var count = 0
-        
-        // Filter out vCLS VMs
-        let filteredVMs = vms.filter { !$0.name.hasPrefix("vCLS-") }
-        
+        let filteredVMs = await MainActor.run { vms.filter { !$0.name.hasPrefix("vCLS-") } }
         for vm in filteredVMs {
             do {
                 let snapshots = try await client.fetchVMSnapshots(id: vm.id)
-                if !snapshots.isEmpty {
-                    count += 1
-                }
+                if !snapshots.isEmpty { count += 1 }
             } catch {
-                // Continue counting even if one VM fails
                 print("⚠️ Could not fetch snapshots for VM \(vm.name): \(error)")
             }
         }
-        
-        vmsWithSnapshotsCount = count
-        print("📸 Found \(count) VMs with snapshots")
+        await MainActor.run { vmsWithSnapshotsCount = count }
     }
     
-    @MainActor
     func testMetricsAPI() async {
         print("📊 Testing metrics API...")
         do {

@@ -39,6 +39,17 @@ A SwiftUI-based management application for VMware vCenter and VMware Aria Operat
     - Maintenance mode status
     - HyperThreading status
 
+### Electricity Usage Monitoring
+- **Shelly Smart Switch Integration**: Monitor electricity usage from Shelly devices
+  - Current power consumption in Watts
+  - Total energy usage in kWh
+  - Voltage monitoring (where available)
+  - Device uptime tracking
+  - Support for Shelly EM and Shelly Plug devices
+  - Real-time data refresh
+  - Multiple device monitoring
+  - Enable/disable individual devices
+
 ### Multi-Server Management
 - **vCenter Servers**: Support for multiple vCenter servers
   - Add, edit, and delete server configurations
@@ -49,6 +60,11 @@ A SwiftUI-based management application for VMware vCenter and VMware Aria Operat
   - Independent management from vCenter servers
   - Dedicated authentication per server
   - Default server selection
+
+- **Shelly Devices**: Support for multiple Shelly smart switches
+  - Add, edit, and delete device configurations
+  - Enable/disable monitoring per device
+  - Local network communication (HTTP)
 
 ### User Interface
 - **Dual Platform Support**: Native SwiftUI UI for both iOS and macOS
@@ -70,6 +86,7 @@ A SwiftUI-based management application for VMware vCenter and VMware Aria Operat
   - Toggle visibility of Hosts button
   - Toggle visibility of VMs with Snapshots button
   - Toggle visibility of Operations Hosts button
+  - Toggle visibility of Electricity Usage button
 
 ### Data Persistence
 - **SwiftData Integration**: Modern data persistence using SwiftData
@@ -99,6 +116,12 @@ A SwiftUI-based management application for VMware vCenter and VMware Aria Operat
   - Property and metric collection
   - Advanced filtering and querying
 
+- **Shelly Device HTTP API**: Local network integration with Shelly smart switches
+  - Real-time energy monitoring
+  - Power consumption tracking
+  - Status and health checking
+  - Support for multiple device types (EM, Plug, Switch)
+
 ### Security Considerations
 ⚠️ **Important**: This is a development/home lab tool that accepts any TLS certificate. Do NOT use in production environments without implementing proper certificate validation.
 
@@ -123,7 +146,11 @@ A SwiftUI-based management application for VMware vCenter and VMware Aria Operat
    - Enter server URL (e.g., "https://192.168.6.199")
    - Enter username and password
    - Optionally set as default server
-5. Return to the main screen to view your infrastructure
+5. Add your Shelly devices (optional):
+   - Enter device name (e.g., "Lab Power Monitor")
+   - Enter IP address (e.g., "192.168.1.100")
+   - Enable monitoring
+6. Return to the main screen to view your infrastructure
 
 ## Usage
 
@@ -152,20 +179,27 @@ Home Lab/
 ├── SettingsView.swift          # Server management and preferences
 ├── VCenterClient.swift         # vCenter REST API client
 ├── OperationsClient.swift      # Operations REST API client
+├── ShellyClient.swift          # Shelly device HTTP API client
 ├── Models/                     # Data models
 │   ├── VCenterServer.swift
 │   ├── OperationsServer.swift
+│   ├── ShellyDevice.swift
 │   └── Item.swift
 └── Views/                      # Feature-specific views
     ├── VMListView.swift
     ├── HostListView.swift
     ├── VMSnapshotsView.swift
-    └── OperationsHostsView.swift
+    ├── OperationsHostsView.swift
+    ├── OperationsHostDetailView.swift
+    └── ElectricityUsageView.swift
 ```
 
 ## Recent Changes
 
 ### February 2026
+- **Electricity usage monitoring**: Added support for Shelly smart switches
+- **Energy tracking**: Monitor power consumption and total energy usage
+- **Multi-device support**: Manage multiple Shelly devices simultaneously
 - **Multi-server support**: Added ability to manage multiple vCenter and Operations servers
 - **Default server selection**: Set preferred servers for automatic connection
 - **VMware Aria Operations integration**: Full support for Operations Manager API
